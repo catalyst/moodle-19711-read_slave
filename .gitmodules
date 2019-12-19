@@ -2,3 +2,7 @@
     branch = STABLE_33
     path = auth/catalyst
 	url = git@git.catalyst-au.net:elearning/mdl-auth_catalyst.git
+[submodule "mod/quiz/accessrule/seb"]
+    branch = master
+	path = mod/quiz/accessrule/seb
+	url = git@github.com:catalyst/moodle-quizaccess_seb.git
