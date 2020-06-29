@@ -72,6 +72,9 @@ define("ASSIGN_MAX_EVENT_LENGTH", "432000");
 // Name of file area for intro attachments.
 define('ASSIGN_INTROATTACHMENT_FILEAREA', 'introattachment');
 
+// Name of file area for activity attachments.
+define('ASSIGN_ACTIVITYATTACHMENT_FILEAREA', 'activityattachment');
+
 // Event types.
 define('ASSIGN_EVENT_TYPE_DUE', 'due');
 define('ASSIGN_EVENT_TYPE_GRADINGDUE', 'gradingdue');
@@ -702,6 +705,8 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
+        $update->activity = $formdata->activityeditor['text'];
+        $update->activityformat = $formdata->activityeditor['format'];
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -747,6 +752,7 @@ class assign {
         $this->course = $DB->get_record('course', array('id'=>$formdata->course), '*', MUST_EXIST);
 
         $this->save_intro_draft_files($formdata);
+        $this->save_editor_draft_files($formdata);
 
         if ($callplugins) {
             // Call save_settings hook for submission plugins.
@@ -1444,6 +1450,8 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
+        $update->activity = $formdata->activityeditor['text'];
+        $update->activityformat = $formdata->activityeditor['format'];
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -1489,6 +1497,7 @@ class assign {
         $this->instance = $DB->get_record('assign', array('id'=>$update->id), '*', MUST_EXIST);
 
         $this->save_intro_draft_files($formdata);
+        $this->save_editor_draft_files($formdata);
 
         // Load the assignment so the plugins have access to it.
 
@@ -1521,7 +1530,7 @@ class assign {
     }
 
     /**
-     * Save the attachments in the draft areas.
+     * Save the attachments in the intro description.
      *
      * @param stdClass $formdata
      */
@@ -1531,6 +1540,19 @@ class assign {
                                        'mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA, 0);
         }
     }
+
+    /**
+     * Save the attachments in the editor description.
+     *
+     * @param stdClass $formdata
+     */
+    protected function save_editor_draft_files($formdata) {
+        if (isset($formdata->activityeditor['itemid'])) {
+            file_save_draft_area_files($formdata->activityeditor['itemid'], $this->get_context()->id,
+                'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA, 0);
+        }
+    }
+
 
     /**
      * Add elements in grading plugin form.

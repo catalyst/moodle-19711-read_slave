@@ -22,6 +22,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['activityattachments'] = 'Assignment activity attachments';
+$string['activityeditor'] = 'Activity';
+$string['activityeditor_help'] = 'The actions you would like the student to complete for this assignment. In an assignment with a time restriction this will be shown when a student starts an attempt.';
 $string['activityoverview'] = 'You have assignments that need attention';
 $string['addsubmission'] = 'Add submission';
 $string['addsubmission_help'] = 'You have not made a submission yet.';
@@ -309,7 +312,7 @@ $string['indicator:socialbreadthdef_help'] = 'The participant has reached this p
 $string['indicator:socialbreadthdef_link'] = 'Learning_analytics_indicators#Social_breadth';
 $string['instructionfiles'] = 'Instruction files';
 $string['introattachments'] = 'Additional files';
-$string['introattachments_help'] = 'Additional files for use in the assignment, such as answer templates, may be added. Download links for the files will then be displayed on the assignment page under the description.';
+$string['introattachments_help'] = 'Additional files for use in the assignment, such as answer templates, may be added. Download links for the files will then be displayed on the assignment page under the activty description.';
 $string['invalidgradeforscale'] = 'The grade supplied was not valid for the current scale';
 $string['invalidfloatforgrade'] = 'The grade provided could not be understood: {$a}';
 $string['invalidoverrideid'] = 'Invalid override id';

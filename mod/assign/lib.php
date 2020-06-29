@@ -1073,7 +1073,10 @@ function assign_get_file_areas($course, $cm, $context) {
     global $CFG;
     require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-    $areas = array(ASSIGN_INTROATTACHMENT_FILEAREA => get_string('introattachments', 'mod_assign'));
+    $areas = array(
+        ASSIGN_INTROATTACHMENT_FILEAREA => get_string('introattachments', 'mod_assign'),
+        ASSIGN_ACTIVITYATTACHMENT_FILEAREA => get_string('activityattachments', 'mod_assign'),
+    );
 
     $assignment = new assign($context, $cm, $course);
     foreach ($assignment->get_submission_plugins() as $plugin) {
@@ -1135,7 +1138,7 @@ function assign_get_file_info($browser,
 
     // Need to find where this belongs to.
     $assignment = new assign($context, $cm, $course);
-    if ($filearea === ASSIGN_INTROATTACHMENT_FILEAREA) {
+    if ($filearea === ASSIGN_INTROATTACHMENT_FILEAREA || $filearea === ASSIGN_ACTIVITYATTACHMENT_FILEAREA) {
         if (!has_capability('moodle/course:managefiles', $context)) {
             // Students can not peak here!
             return null;

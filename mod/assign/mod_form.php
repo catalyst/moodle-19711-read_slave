@@ -58,6 +58,12 @@ class mod_assign_mod_form extends moodleform_mod {
 
         $this->standard_intro_elements(get_string('description', 'assign'));
 
+        // Activity.
+        $mform->addElement('editor', 'activityeditor',
+             get_string('activityeditor', 'assign'), array('rows' => 10), array('maxfiles' => EDITOR_UNLIMITED_FILES,
+            'noclean' => true, 'context' => $this->context, 'subdirs' => true));
+        $mform->setType('activityeditor', PARAM_RAW);
+
         $mform->addElement('filemanager', 'introattachments',
                             get_string('introattachments', 'assign'),
                             null, array('subdirs' => 0, 'maxbytes' => $COURSE->maxbytes) );
@@ -76,8 +82,6 @@ class mod_assign_mod_form extends moodleform_mod {
             $course = $DB->get_record('course', array('id'=>$this->current->course), '*', MUST_EXIST);
             $assignment->set_course($course);
         }
-
-        $config = get_config('assign');
 
         $mform->addElement('header', 'availability', get_string('availability', 'assign'));
         $mform->setExpanded('availability', true);
@@ -283,6 +287,16 @@ class mod_assign_mod_form extends moodleform_mod {
         file_prepare_draft_area($draftitemid, $ctx->id, 'mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA,
                                 0, array('subdirs' => 0));
         $defaultvalues['introattachments'] = $draftitemid;
+
+        // Activty editor fields.
+        $activitydraftitemid = file_get_submitted_draft_itemid('activityeditor');
+        file_prepare_draft_area($activitydraftitemid, $ctx->id, 'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA,
+            0, array('subdirs' => 0));
+        $defaultvalues['activityeditor'] = array(
+            'text' => $defaultvalues['activity'],
+            'format' => $defaultvalues['activityformat'],
+            'itemid' => $activitydraftitemid
+        );
 
         $assignment->plugin_data_preprocessing($defaultvalues);
     }
