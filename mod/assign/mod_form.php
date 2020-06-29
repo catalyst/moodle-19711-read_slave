@@ -62,6 +62,7 @@ class mod_assign_mod_form extends moodleform_mod {
         $mform->addElement('editor', 'activityeditor',
              get_string('activityeditor', 'assign'), array('rows' => 10), array('maxfiles' => EDITOR_UNLIMITED_FILES,
             'noclean' => true, 'context' => $this->context, 'subdirs' => true));
+        $mform->addHelpButton('activityeditor', 'activityeditor', 'assign');
         $mform->setType('activityeditor', PARAM_RAW);
 
         $mform->addElement('filemanager', 'introattachments',
@@ -102,6 +103,11 @@ class mod_assign_mod_form extends moodleform_mod {
         $name = get_string('gradingduedate', 'assign');
         $mform->addElement('date_time_selector', 'gradingduedate', $name, array('optional' => true));
         $mform->addHelpButton('gradingduedate', 'gradingduedate', 'assign');
+
+        // Time limit.
+        $mform->addElement('duration', 'timelimit', get_string('timelimit', 'assign'),
+            array('optional' => true));
+        $mform->addHelpButton('timelimit', 'timelimit', 'assign');
 
         $name = get_string('alwaysshowdescription', 'assign');
         $mform->addElement('checkbox', 'alwaysshowdescription', $name);

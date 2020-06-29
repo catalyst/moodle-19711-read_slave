@@ -62,7 +62,7 @@ function xmldb_assign_upgrade($oldversion) {
     // Automatically generated Moodle v3.9.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2020062900) {
+    if ($oldversion < 2020062901) {
 
         // Define field activity to be added to assign.
         $table = new xmldb_table('assign');
@@ -79,8 +79,16 @@ function xmldb_assign_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+
+        $field = new xmldb_field('timelimit', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'cutoffdate');
+
+        // Conditionally launch add field timelimit.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
         // Assign savepoint reached.
-        upgrade_mod_savepoint(true, 2020062900, 'assign');
+        upgrade_mod_savepoint(true, 2020062901, 'assign');
     }
 
     return true;
