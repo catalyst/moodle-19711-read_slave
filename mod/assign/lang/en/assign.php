@@ -499,6 +499,9 @@ $string['settings'] = 'Assignment settings';
 $string['showrecentsubmissions'] = 'Show recent submissions';
 $string['status'] = 'Status';
 $string['studentnotificationworkflowstateerror'] = 'Marking workflow state must be \'Released\' to notify students.';
+$string['submissionattachments'] = 'Only show files during submission.';
+$string['submissionattachments_help'] = 'When enabled files will only be shown on submission screen.
+When disabled files will be shown on both assignment view and submission screens.';
 $string['submissioncopiedtext'] = 'You have made a copy of your previous
 assignment submission for \'{$a->assignment}\'
 

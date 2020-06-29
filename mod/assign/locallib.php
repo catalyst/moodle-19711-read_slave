@@ -707,6 +707,7 @@ class assign {
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
         $update->activity = $formdata->activityeditor['text'];
         $update->activityformat = $formdata->activityeditor['format'];
+        $update->submissionattachments = $formdata->submissionattachments;
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -1453,6 +1454,7 @@ class assign {
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
         $update->activity = $formdata->activityeditor['text'];
         $update->activityformat = $formdata->activityeditor['format'];
+        $update->submissionattachments = $formdata->submissionattachments;
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -5719,7 +5721,7 @@ class assign {
         $o = '';
 
         $postfix = '';
-        if ($this->has_visible_attachments()) {
+        if ($this->has_visible_attachments() && (!$this->get_instance($USER->id)->submissionattachments)) {
             $postfix = $this->render_area_files('mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA, 0);
         }
 

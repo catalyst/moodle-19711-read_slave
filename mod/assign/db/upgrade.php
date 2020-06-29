@@ -62,7 +62,7 @@ function xmldb_assign_upgrade($oldversion) {
     // Automatically generated Moodle v3.9.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2020062901) {
+    if ($oldversion < 2020062902) {
 
         // Define field activity to be added to assign.
         $table = new xmldb_table('assign');
@@ -87,8 +87,15 @@ function xmldb_assign_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
+        $field = new xmldb_field('submissionattachments', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'activityformat');
+
+        // Conditionally launch add field submissionattachments.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
         // Assign savepoint reached.
-        upgrade_mod_savepoint(true, 2020062901, 'assign');
+        upgrade_mod_savepoint(true, 2020062902, 'assign');
     }
 
     return true;

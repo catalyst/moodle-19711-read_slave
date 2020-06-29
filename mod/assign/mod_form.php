@@ -70,6 +70,9 @@ class mod_assign_mod_form extends moodleform_mod {
                             null, array('subdirs' => 0, 'maxbytes' => $COURSE->maxbytes) );
         $mform->addHelpButton('introattachments', 'introattachments', 'assign');
 
+        $mform->addElement('advcheckbox', 'submissionattachments', get_string('submissionattachments', 'assign'));
+        $mform->addHelpButton('submissionattachments', 'submissionattachments', 'assign');
+
         $ctx = null;
         if ($this->current && $this->current->coursemodule) {
             $cm = get_coursemodule_from_instance('assign', $this->current->id, 0, false, MUST_EXIST);

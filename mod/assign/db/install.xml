@@ -14,6 +14,7 @@
         <FIELD NAME="alwaysshowdescription" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If false the assignment intro will only be displayed after the allowsubmissionsfrom date. If true it will always be displayed."/>
         <FIELD NAME="activity" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The instructions for students to follow for this assignment"/>
         <FIELD NAME="activityformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The format of the activity field of the assignment."/>
+        <FIELD NAME="submissionattachments" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When enabled files will only be shown on submission screen. When disabled files will be shown on both assignment view and submission screens."/>
         <FIELD NAME="nosubmissions" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="This field is a cache for is_any_submission_plugin_enabled() which allows Moodle pages to distinguish offline assignment types without loading the assignment class."/>
         <FIELD NAME="submissiondrafts" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If true, assignment submissions will be considered drafts until the student clicks on the submit assignmnet button."/>
         <FIELD NAME="sendnotifications" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Allows the disabling of email notifications in the assign module."/>
