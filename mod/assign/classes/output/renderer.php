@@ -282,6 +282,7 @@ class renderer extends \plugin_renderer_base {
         $o .= $this->output->heading(get_string('gradingsummary', 'assign'), 3);
         $o .= $this->output->box_start('boxaligncenter gradingsummarytable');
         $t = new \html_table();
+        $t->attributes['class'] = 'generaltable table-bordered';
 
         // Visibility Status.
         $cell1content = get_string('hiddenfromstudents');
@@ -558,9 +559,8 @@ class renderer extends \plugin_renderer_base {
         if ($status->gradingstatus == ASSIGN_GRADING_STATUS_GRADED ||
             $status->gradingstatus == ASSIGN_MARKING_WORKFLOW_STATE_RELEASED) {
             $classname = 'submissiongraded';
-        } else {
-            $classname = 'submissionnotgraded';
         }
+
         $o .= $this->output->container($statusstr, $classname);
 
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
@@ -654,8 +654,69 @@ class renderer extends \plugin_renderer_base {
     public function render_assign_submission_status(\assign_submission_status $status) {
         $o = '';
         $o .= $this->output->container_start('submissionstatustable');
-        $o .= $this->output->heading(get_string('submissionstatusheading', 'assign'), 3);
+
         $time = time();
+        $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
+
+        // Links.
+        if ($status->view == \assign_submission_status::STUDENT_VIEW) {
+            if ($status->canedit) {
+                if (!$submission || $submission->status == ASSIGN_SUBMISSION_STATUS_NEW) {
+                    $o .= $this->output->box_start('generalbox submissionaction');
+                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
+                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                        get_string('addsubmission', 'assign'), 'get');
+                    $o .= $this->output->box_start('boxaligncenter submithelp');
+                    $o .= get_string('addsubmission_help', 'assign');
+                    $o .= $this->output->box_end();
+                    $o .= $this->output->box_end();
+                } else if ($submission->status == ASSIGN_SUBMISSION_STATUS_REOPENED) {
+                    $o .= $this->output->box_start('generalbox submissionaction');
+                    $urlparams = array('id' => $status->coursemoduleid,
+                        'action' => 'editprevioussubmission',
+                        'sesskey'=>sesskey());
+                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                        get_string('addnewattemptfromprevious', 'assign'), 'get');
+                    $o .= $this->output->box_start('boxaligncenter submithelp');
+                    $o .= get_string('addnewattemptfromprevious_help', 'assign');
+                    $o .= $this->output->box_end();
+                    $o .= $this->output->box_end();
+                    $o .= $this->output->box_start('generalbox submissionaction');
+                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
+                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                        get_string('addnewattempt', 'assign'), 'get');
+                    $o .= $this->output->box_start('boxaligncenter submithelp');
+                    $o .= get_string('addnewattempt_help', 'assign');
+                    $o .= $this->output->box_end();
+                    $o .= $this->output->box_end();
+                } else {
+                    $o .= $this->output->box_start('generalbox submissionaction');
+                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
+                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                        get_string('editsubmission', 'assign'), 'get');
+                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'removesubmissionconfirm');
+                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                        get_string('removesubmission', 'assign'), 'get');
+                    $o .= $this->output->box_start('boxaligncenter submithelp');
+                    $o .= get_string('editsubmission_help', 'assign');
+                    $o .= $this->output->box_end();
+                    $o .= $this->output->box_end();
+                }
+            }
+
+            if ($status->cansubmit) {
+                $urlparams = array('id' => $status->coursemoduleid, 'action'=>'submit');
+                $o .= $this->output->box_start('generalbox submissionaction');
+                $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                    get_string('submitassignment', 'assign'), 'get');
+                $o .= $this->output->box_start('boxaligncenter submithelp');
+                $o .= get_string('submitassignment_help', 'assign');
+                $o .= $this->output->box_end();
+                $o .= $this->output->box_end();
+            }
+        }
+
+        $o .= $this->output->heading(get_string('submissionstatusheading', 'assign'), 3);
 
         if ($status->allowsubmissionsfromdate &&
                 $time <= $status->allowsubmissionsfromdate) {
@@ -672,6 +733,7 @@ class renderer extends \plugin_renderer_base {
         $o .= $this->output->box_start('boxaligncenter submissionsummarytable');
 
         $t = new \html_table();
+        $t->attributes['class'] = 'generaltable table-bordered';
 
         $warningmsg = '';
         if ($status->teamsubmissionenabled) {
@@ -792,12 +854,10 @@ class renderer extends \plugin_renderer_base {
         if ($status->gradingstatus == ASSIGN_GRADING_STATUS_GRADED ||
             $status->gradingstatus == ASSIGN_MARKING_WORKFLOW_STATE_RELEASED) {
             $cell2attributes = array('class' => 'submissiongraded');
-        } else {
-            $cell2attributes = array('class' => 'submissionnotgraded');
         }
+
         $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
 
-        $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
         $duedate = $status->duedate;
         if ($duedate > 0) {
             // Due date.
@@ -912,64 +972,6 @@ class renderer extends \plugin_renderer_base {
         $o .= $warningmsg;
         $o .= \html_writer::table($t);
         $o .= $this->output->box_end();
-
-        // Links.
-        if ($status->view == \assign_submission_status::STUDENT_VIEW) {
-            if ($status->canedit) {
-                if (!$submission || $submission->status == ASSIGN_SUBMISSION_STATUS_NEW) {
-                    $o .= $this->output->box_start('generalbox submissionaction');
-                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
-                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                                                       get_string('addsubmission', 'assign'), 'get');
-                    $o .= $this->output->box_start('boxaligncenter submithelp');
-                    $o .= get_string('addsubmission_help', 'assign');
-                    $o .= $this->output->box_end();
-                    $o .= $this->output->box_end();
-                } else if ($submission->status == ASSIGN_SUBMISSION_STATUS_REOPENED) {
-                    $o .= $this->output->box_start('generalbox submissionaction');
-                    $urlparams = array('id' => $status->coursemoduleid,
-                                       'action' => 'editprevioussubmission',
-                                       'sesskey'=>sesskey());
-                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                                                       get_string('addnewattemptfromprevious', 'assign'), 'get');
-                    $o .= $this->output->box_start('boxaligncenter submithelp');
-                    $o .= get_string('addnewattemptfromprevious_help', 'assign');
-                    $o .= $this->output->box_end();
-                    $o .= $this->output->box_end();
-                    $o .= $this->output->box_start('generalbox submissionaction');
-                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
-                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                                                       get_string('addnewattempt', 'assign'), 'get');
-                    $o .= $this->output->box_start('boxaligncenter submithelp');
-                    $o .= get_string('addnewattempt_help', 'assign');
-                    $o .= $this->output->box_end();
-                    $o .= $this->output->box_end();
-                } else {
-                    $o .= $this->output->box_start('generalbox submissionaction');
-                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
-                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                                                       get_string('editsubmission', 'assign'), 'get');
-                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'removesubmissionconfirm');
-                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                                                       get_string('removesubmission', 'assign'), 'get');
-                    $o .= $this->output->box_start('boxaligncenter submithelp');
-                    $o .= get_string('editsubmission_help', 'assign');
-                    $o .= $this->output->box_end();
-                    $o .= $this->output->box_end();
-                }
-            }
-
-            if ($status->cansubmit) {
-                $urlparams = array('id' => $status->coursemoduleid, 'action'=>'submit');
-                $o .= $this->output->box_start('generalbox submissionaction');
-                $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                                                   get_string('submitassignment', 'assign'), 'get');
-                $o .= $this->output->box_start('boxaligncenter submithelp');
-                $o .= get_string('submitassignment_help', 'assign');
-                $o .= $this->output->box_end();
-                $o .= $this->output->box_end();
-            }
-        }
 
         $o .= $this->output->container_end();
         return $o;
@@ -1501,4 +1503,3 @@ class renderer extends \plugin_renderer_base {
     }
 
 }
-

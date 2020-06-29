@@ -5722,6 +5722,7 @@ class assign {
         if ($this->has_visible_attachments()) {
             $postfix = $this->render_area_files('mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA, 0);
         }
+
         $o .= $this->get_renderer()->render(new assign_header($instance,
                                                       $this->get_context(),
                                                       $this->show_intro(),
@@ -5736,6 +5737,10 @@ class assign {
             }
         }
 
+        if ($this->can_view_submission($USER->id)) {
+            $o .= $this->view_student_summary($USER, true);
+        }
+
         if ($this->can_view_grades()) {
             // Group selector will only be displayed if necessary.
             $currenturl = new moodle_url('/mod/assign/view.php', array('id' => $this->get_course_module()->id));
@@ -5743,12 +5748,6 @@ class assign {
 
             $summary = $this->get_assign_grading_summary_renderable();
             $o .= $this->get_renderer()->render($summary);
-        }
-        $grade = $this->get_user_grade($USER->id, false);
-        $submission = $this->get_user_submission($USER->id, false);
-
-        if ($this->can_view_submission($USER->id)) {
-            $o .= $this->view_student_summary($USER, true);
         }
 
         $o .= $this->view_footer();
