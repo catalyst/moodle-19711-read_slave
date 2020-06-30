@@ -251,6 +251,7 @@ class renderer extends \plugin_renderer_base {
         if ($header->showintro) {
             $o .= $this->output->box_start('generalbox boxaligncenter', 'intro');
             $o .= format_module_intro('assign', $header->assign, $header->coursemoduleid);
+            $o .= $this->format_activity_text($header->assign, $header->coursemoduleid);
             $o .= $header->postfix;
             $o .= $this->output->box_end();
         }
@@ -1501,5 +1502,25 @@ class renderer extends \plugin_renderer_base {
         $context = $app->export_for_template($this);
         return $this->render_from_template('mod_assign/grading_app', $context);
     }
+
+    /**
+     * Formats activity intro text
+     *
+     * @param string $module name of module
+     * @param object $activity instance of activity
+     * @param int $cmid course module id
+     * @param bool $filter filter resulting html text
+     * @return string
+     */
+    public function format_activity_text($assign, $cmid) {
+        global $CFG;
+        require_once("$CFG->libdir/filelib.php");
+        $context = \context_module::instance($cmid);
+        $options = array('noclean' => true, 'para' => false, 'filter' => true, 'context' => $context, 'overflowdiv' => true);
+        $activity = file_rewrite_pluginfile_urls(
+            $assign->activity, 'pluginfile.php', $context->id, 'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA, 0);
+        return trim(format_text($activity, $assign->activityformat, $options, null));
+    }
+
 
 }

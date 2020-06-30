@@ -705,7 +705,7 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
-        $update->activity = $formdata->activityeditor['text'];
+        $update->activity = $this->save_editor_draft_files($formdata);
         $update->activityformat = $formdata->activityeditor['format'];
         $update->submissionattachments = $formdata->submissionattachments;
         $update->submissiondrafts = $formdata->submissiondrafts;
@@ -1452,7 +1452,7 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
-        $update->activity = $formdata->activityeditor['text'];
+        $update->activity = $this->save_editor_draft_files($formdata);
         $update->activityformat = $formdata->activityeditor['format'];
         $update->submissionattachments = $formdata->submissionattachments;
         $update->submissiondrafts = $formdata->submissiondrafts;
@@ -1501,7 +1501,6 @@ class assign {
         $this->instance = $DB->get_record('assign', array('id'=>$update->id), '*', MUST_EXIST);
 
         $this->save_intro_draft_files($formdata);
-        $this->save_editor_draft_files($formdata);
 
         // Load the assignment so the plugins have access to it.
 
@@ -1550,11 +1549,13 @@ class assign {
      *
      * @param stdClass $formdata
      */
-    protected function save_editor_draft_files($formdata) {
+    protected function save_editor_draft_files($formdata): string {
+        $text = $formdata->activityeditor['text'];
         if (isset($formdata->activityeditor['itemid'])) {
-            file_save_draft_area_files($formdata->activityeditor['itemid'], $this->get_context()->id,
-                'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA, 0);
+            $text = file_save_draft_area_files($formdata->activityeditor['itemid'], $this->get_context()->id,
+                'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA, 0, array('subdirs'=>true), $formdata->activityeditor['text']);
         }
+        return $text;
     }
 
 

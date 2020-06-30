@@ -1357,7 +1357,7 @@ function assign_pluginfile($course,
     require_once($CFG->dirroot . '/mod/assign/locallib.php');
     $assign = new assign($context, $cm, $course);
 
-    if ($filearea !== ASSIGN_INTROATTACHMENT_FILEAREA) {
+    if ($filearea !== ASSIGN_INTROATTACHMENT_FILEAREA && $filearea !== ASSIGN_ACTIVITYATTACHMENT_FILEAREA) {
         return false;
     }
     if (!$assign->show_intro()) {
