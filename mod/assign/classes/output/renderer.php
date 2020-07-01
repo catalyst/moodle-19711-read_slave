@@ -522,7 +522,7 @@ class renderer extends \plugin_renderer_base {
                 foreach ($members as $member) {
                     $urlparams = array('id' => $member->id, 'course' => $status->courseid);
                     $url = new \moodle_url('/user/view.php', $urlparams);
-                    if ($status->view == \assign_submission_status::GRADER_VIEW && $status->blindmarking) {
+                    if ($status->view == assign_submission_status::GRADER_VIEW && $status->blindmarking) {
                         $userslist[] = $member->alias;
                     } else {
                         $fullname = fullname($member, $status->canviewfullnames);
@@ -606,7 +606,7 @@ class renderer extends \plugin_renderer_base {
         }
 
         // Show graders whether this submission is editable by students.
-        if ($status->view == \assign_submission_status::GRADER_VIEW) {
+        if ($status->view == assign_submission_status::GRADER_VIEW) {
             if ($status->canedit) {
                 $o .= $this->output->container(get_string('submissioneditable', 'assign'), 'submissioneditable');
             } else {
@@ -651,10 +651,10 @@ class renderer extends \plugin_renderer_base {
     /**
      * Render a table containing the current status of the submission.
      *
-     * @param \assign_submission_status $status
+     * @param assign_submission_status  $status
      * @return string
      */
-    public function render_assign_submission_status(\assign_submission_status $status) {
+    public function render_assign_submission_status(assign_submission_status $status) {
         $o = '';
         $o .= $this->output->container_start('submissionstatustable');
 
@@ -662,13 +662,25 @@ class renderer extends \plugin_renderer_base {
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
 
         // Links.
-        if ($status->view == \assign_submission_status::STUDENT_VIEW) {
+        if ($status->view == assign_submission_status ::STUDENT_VIEW) {
             if ($status->canedit) {
                 if (!$submission || $submission->status == ASSIGN_SUBMISSION_STATUS_NEW) {
                     $o .= $this->output->box_start('generalbox submissionaction');
+
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
-                    $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                        get_string('addsubmission', 'assign'), 'get');
+                    if ($status->timelimit > 0) {
+                        $confirmation = new \confirm_action(
+                            get_string('confirmstart', 'assign', format_time($status->timelimit)),
+                            null, get_string('addsubmission', 'assign'));
+                        $o .= $this->output->action_link(
+                            new \moodle_url('/mod/assign/view.php', $urlparams),
+                            get_string('addsubmission', 'assign'),
+                            $confirmation,
+                            array('class' => 'btn btn-secondary'));
+                    } else {
+                        $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                            get_string('addsubmission', 'assign'), 'get');
+                    }
                     $o .= $this->output->box_start('boxaligncenter submithelp');
                     $o .= get_string('addsubmission_help', 'assign');
                     $o .= $this->output->box_end();
@@ -812,7 +824,7 @@ class renderer extends \plugin_renderer_base {
                 foreach ($members as $member) {
                     $urlparams = array('id' => $member->id, 'course'=>$status->courseid);
                     $url = new \moodle_url('/user/view.php', $urlparams);
-                    if ($status->view == \assign_submission_status::GRADER_VIEW && $status->blindmarking) {
+                    if ($status->view == assign_submission_status::GRADER_VIEW && $status->blindmarking) {
                         $userslist[] = $member->alias;
                     } else {
                         $fullname = fullname($member, $status->canviewfullnames);
@@ -868,7 +880,7 @@ class renderer extends \plugin_renderer_base {
             $cell2content = userdate($duedate);
             $this->add_table_row_tuple($t, $cell1content, $cell2content);
 
-            if ($status->view == \assign_submission_status::GRADER_VIEW) {
+            if ($status->view == assign_submission_status::GRADER_VIEW) {
                 if ($status->cutoffdate) {
                     // Cut off date.
                     $cell1content = get_string('cutoffdate', 'assign');
@@ -917,7 +929,7 @@ class renderer extends \plugin_renderer_base {
         }
 
         // Show graders whether this submission is editable by students.
-        if ($status->view == \assign_submission_status::GRADER_VIEW) {
+        if ($status->view == assign_submission_status::GRADER_VIEW) {
             $cell1content = get_string('editingstatus', 'assign');
             if ($status->canedit) {
                 $cell2content = get_string('submissioneditable', 'assign');

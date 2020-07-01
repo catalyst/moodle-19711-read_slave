@@ -95,6 +95,7 @@ require_once($CFG->libdir . '/portfolio/caller.php');
 
 use \mod_assign\output\grading_app;
 use \mod_assign\output\assign_header;
+use \mod_assign\output\assign_submission_status;
 
 /**
  * Standard base class for mod_assign (assignment types).
@@ -4243,7 +4244,8 @@ class assign {
                                                              $instance->maxattempts,
                                                              $this->get_grading_status($userid),
                                                              $instance->preventsubmissionnotingroup,
-                                                             $usergroups);
+                                                             $usergroups,
+                                                             $instance->timelimit);
             $o .= $this->get_renderer()->render($submissionstatus);
         }
 
@@ -5290,7 +5292,8 @@ class assign {
                                                           $instance->maxattempts,
                                                           $gradingstatus,
                                                           $instance->preventsubmissionnotingroup,
-                                                          $usergroups);
+                                                          $usergroups,
+                                                          $instance->timelimit);
         return $submissionstatus;
     }
 

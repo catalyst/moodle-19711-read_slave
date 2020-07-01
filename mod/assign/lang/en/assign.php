@@ -502,6 +502,7 @@ $string['studentnotificationworkflowstateerror'] = 'Marking workflow state must 
 $string['submissionattachments'] = 'Only show files during submission.';
 $string['submissionattachments_help'] = 'When enabled files will only be shown on submission screen.
 When disabled files will be shown on both assignment view and submission screens.';
+$string['confirmstart'] = 'Your submission will have a time limit of {$a}. When you start, the timer will begin to count down and cannot be paused. You must finish your submission before it expires. Are you sure you wish to start now? ';
 $string['submissioncopiedtext'] = 'You have made a copy of your previous
 assignment submission for \'{$a->assignment}\'
 
