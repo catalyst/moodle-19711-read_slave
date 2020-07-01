@@ -299,12 +299,14 @@ class mod_assign_mod_form extends moodleform_mod {
 
         // Activty editor fields.
         $activitydraftitemid = file_get_submitted_draft_itemid('activityeditor');
-        $defaultvalues['activityeditor'] = array(
-            'text' => file_prepare_draft_area($activitydraftitemid, $ctx->id, 'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA,
-                0, array('subdirs' => 0), $defaultvalues['activity']),
-            'format' => $defaultvalues['activityformat'],
-            'itemid' => $activitydraftitemid
-        );
+        if (!empty($defaultvalues['activity'])) {
+            $defaultvalues['activityeditor'] = array(
+                'text' => file_prepare_draft_area($activitydraftitemid, $ctx->id, 'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA,
+                    0, array('subdirs' => 0), $defaultvalues['activity']),
+                'format' => $defaultvalues['activityformat'],
+                'itemid' => $activitydraftitemid
+            );
+        }
 
         $assignment->plugin_data_preprocessing($defaultvalues);
     }

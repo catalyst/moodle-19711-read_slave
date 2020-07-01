@@ -94,6 +94,7 @@ require_once($CFG->dirroot . '/mod/assign/gradingtable.php');
 require_once($CFG->libdir . '/portfolio/caller.php');
 
 use \mod_assign\output\grading_app;
+use \mod_assign\output\assign_header;
 
 /**
  * Standard base class for mod_assign (assignment types).
@@ -4799,7 +4800,7 @@ class assign {
                                                       $this->get_context(),
                                                       $this->show_intro(),
                                                       $this->get_course_module()->id,
-                                                      $title, '', $postfix));
+                                                      $title, '', $postfix, true));
 
         // Show plagiarism disclosure for any user submitter.
         $o .= $this->plagiarism_print_disclosure();

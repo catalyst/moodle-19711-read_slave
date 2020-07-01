@@ -271,7 +271,7 @@ class assign_submission_plugin_submission implements renderable {
  */
 class assign_feedback_status implements renderable {
 
-    /** @var stding $gradefordisplay the student grade rendered into a format suitable for display */
+    /** @var string $gradefordisplay the student grade rendered into a format suitable for display */
     public $gradefordisplay = '';
     /** @var mixed the graded date (may be null) */
     public $gradeddate = 0;
@@ -647,55 +647,6 @@ class assign_attempt_history_chooser implements renderable, templatable {
         }
 
         return $export;
-    }
-}
-
-/**
- * Renderable header
- * @package   mod_assign
- * @copyright 2012 NetSpot {@link http://www.netspot.com.au}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class assign_header implements renderable {
-    /** @var stdClass the assign record  */
-    public $assign = null;
-    /** @var mixed context|null the context record  */
-    public $context = null;
-    /** @var bool $showintro - show or hide the intro */
-    public $showintro = false;
-    /** @var int coursemoduleid - The course module id */
-    public $coursemoduleid = 0;
-    /** @var string $subpage optional subpage (extra level in the breadcrumbs) */
-    public $subpage = '';
-    /** @var string $preface optional preface (text to show before the heading) */
-    public $preface = '';
-    /** @var string $postfix optional postfix (text to show after the intro) */
-    public $postfix = '';
-
-    /**
-     * Constructor
-     *
-     * @param stdClass $assign  - the assign database record
-     * @param mixed $context context|null the course module context
-     * @param bool $showintro  - show or hide the intro
-     * @param int $coursemoduleid  - the course module id
-     * @param string $subpage  - an optional sub page in the navigation
-     * @param string $preface  - an optional preface to show before the heading
-     */
-    public function __construct(stdClass $assign,
-                                $context,
-                                $showintro,
-                                $coursemoduleid,
-                                $subpage='',
-                                $preface='',
-                                $postfix='') {
-        $this->assign = $assign;
-        $this->context = $context;
-        $this->showintro = $showintro;
-        $this->coursemoduleid = $coursemoduleid;
-        $this->subpage = $subpage;
-        $this->preface = $preface;
-        $this->postfix = $postfix;
     }
 }
 

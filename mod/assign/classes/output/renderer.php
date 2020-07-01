@@ -222,10 +222,10 @@ class renderer extends \plugin_renderer_base {
     /**
      * Render the header.
      *
-     * @param \assign_header $header
+     * @param assign_header $header
      * @return string
      */
-    public function render_assign_header(\assign_header $header) {
+    public function render_assign_header(assign_header $header) {
         $o = '';
 
         if ($header->subpage) {
@@ -251,7 +251,9 @@ class renderer extends \plugin_renderer_base {
         if ($header->showintro) {
             $o .= $this->output->box_start('generalbox boxaligncenter', 'intro');
             $o .= format_module_intro('assign', $header->assign, $header->coursemoduleid);
-            $o .= $this->format_activity_text($header->assign, $header->coursemoduleid);
+            if ($header->activity) {
+                $o .= $this->format_activity_text($header->assign, $header->coursemoduleid);
+            }
             $o .= $header->postfix;
             $o .= $this->output->box_end();
         }

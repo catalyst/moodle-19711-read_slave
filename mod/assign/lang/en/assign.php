@@ -24,7 +24,7 @@
 
 $string['activityattachments'] = 'Assignment activity attachments';
 $string['activityeditor'] = 'Activity';
-$string['activityeditor_help'] = 'The actions you would like the student to complete for this assignment. In an assignment with a time restriction this will be shown when a student starts an attempt.';
+$string['activityeditor_help'] = 'The actions you would like the student to complete for this assignment. This is only shown on the submission page where a students edits and submits their assignment.';
 $string['activityoverview'] = 'You have assignments that need attention';
 $string['addsubmission'] = 'Add submission';
 $string['addsubmission_help'] = 'You have not made a submission yet.';
