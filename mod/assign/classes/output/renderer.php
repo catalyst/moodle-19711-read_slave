@@ -928,6 +928,13 @@ class renderer extends \plugin_renderer_base {
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
         }
 
+        // Add time limit info if there is one.
+        if ($status->timelimit > 0) {
+            $cell1content = get_string('timelimit', 'assign');
+            $cell2content = format_time($status->timelimit);
+            $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
+        }
+
         // Show graders whether this submission is editable by students.
         if ($status->view == assign_submission_status::GRADER_VIEW) {
             $cell1content = get_string('editingstatus', 'assign');
