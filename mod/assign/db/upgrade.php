@@ -98,5 +98,20 @@ function xmldb_assign_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020062902, 'assign');
     }
 
+    if ($oldversion < 2020062903) {
+
+        $table = new xmldb_table('assign_submission_attempts');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('submissionid', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        // Assign savepoint reached.
+        upgrade_mod_savepoint(true, 2020062903, 'assign');
+    }
+
     return true;
 }
