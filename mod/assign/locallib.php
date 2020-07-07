@@ -3044,6 +3044,18 @@ class assign {
         }
 
         if ($submission) {
+            if ($create) {
+                $action = optional_param('action', '', PARAM_TEXT);
+                if ($action == 'editsubmission') {
+                    $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                    if (!$submissionattempt) {
+                        $submissionattempt = new stdClass();
+                        $submissionattempt->submissionid = $submission->id;
+                        $submissionattempt->timecreated = time();
+                        $said = $DB->insert_record('assign_submission_attempts', $submissionattempt);
+                    }
+                }
+            }
             return $submission;
         }
         if ($create) {
