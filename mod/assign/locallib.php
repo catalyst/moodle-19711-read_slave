@@ -707,9 +707,13 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
-        $update->activity = $this->save_editor_draft_files($formdata);
-        $update->activityformat = $formdata->activityeditor['format'];
-        $update->submissionattachments = $formdata->submissionattachments;
+        if (isset($formdata->activityeditor)) {
+            $update->activity = $this->save_editor_draft_files($formdata);
+            $update->activityformat = $formdata->activityeditor['format'];
+        }
+        if (isset($formdata->submissionattachments)) {
+            $update->submissionattachments = $formdata->submissionattachments;
+        }
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -721,7 +725,9 @@ class assign {
         $update->duedate = $formdata->duedate;
         $update->cutoffdate = $formdata->cutoffdate;
         $update->gradingduedate = $formdata->gradingduedate;
-        $update->timelimit = $formdata->timelimit;
+        if (isset($formdata->timelimit)) {
+            $update->timelimit = $formdata->timelimit;
+        }
         $update->allowsubmissionsfromdate = $formdata->allowsubmissionsfromdate;
         $update->grade = $formdata->grade;
         $update->completionsubmit = !empty($formdata->completionsubmit);
@@ -1552,10 +1558,13 @@ class assign {
      * @param stdClass $formdata
      */
     protected function save_editor_draft_files($formdata): string {
-        $text = $formdata->activityeditor['text'];
-        if (isset($formdata->activityeditor['itemid'])) {
-            $text = file_save_draft_area_files($formdata->activityeditor['itemid'], $this->get_context()->id,
-                'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA, 0, array('subdirs'=>true), $formdata->activityeditor['text']);
+        $text = '';
+        if (isset($formdata->activityeditor)) {
+            $text = $formdata->activityeditor['text'];
+            if (isset($formdata->activityeditor['itemid'])) {
+                $text = file_save_draft_area_files($formdata->activityeditor['itemid'], $this->get_context()->id,
+                    'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA, 0, array('subdirs' => true), $formdata->activityeditor['text']);
+            }
         }
         return $text;
     }
