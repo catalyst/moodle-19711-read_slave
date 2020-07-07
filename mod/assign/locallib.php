@@ -4807,7 +4807,12 @@ class assign {
             return $this->view_notices($title, $message);
         }
 
-        $submission = $this->get_user_submission($userid, false);
+        if ($this->instance->teamsubmission){
+            $submission = $this->get_group_submission($userid, 0, false);
+        } else {
+            $submission = $this->get_user_submission($userid, false);
+        }
+
         $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
         if ($submissionattempt && ($this->instance->timelimit > 0)) {
             if ((time() - $submissionattempt->timecreated > $this->instance->timelimit)) {

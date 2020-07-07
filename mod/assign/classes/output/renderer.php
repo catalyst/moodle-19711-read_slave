@@ -724,8 +724,8 @@ class renderer extends \plugin_renderer_base {
                     $o .= $this->output->box_end();
                     $o .= $this->output->box_end();
                 } else {
+                    $disabled = false;
                     if ($status->timelimit > 0) {
-                        $disabled = false;
                         if (isset($submission->id)) {
                             $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
                             if ($submissionattempt) {
