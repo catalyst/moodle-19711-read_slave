@@ -4062,7 +4062,8 @@ class assign {
                                                                      $instance->maxattempts,
                                                                      $this->get_grading_status($userid),
                                                                      $instance->preventsubmissionnotingroup,
-                                                                     $usergroups);
+                                                                     $usergroups,
+                                                                     $instance->timelimit);
             $o .= $this->get_renderer()->render($submissionstatus);
         }
 

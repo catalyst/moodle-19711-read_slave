@@ -724,13 +724,27 @@ class renderer extends \plugin_renderer_base {
                     $o .= $this->output->box_end();
                     $o .= $this->output->box_end();
                 } else {
+                    if ($status->timelimit > 0) {
+                        $disabled = false;
+                        if (isset($submission->id)) {
+                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                            if ($submissionattempt) {
+                                if (time() - $submissionattempt->timecreated > $status->timelimit) {
+                                    $disabled = true;
+                                    $notification = get_string('timelimitpassed', 'assign');
+                                    $o .= $this->output->notification($notification);
+                                }
+                            }
+                        }
+                    }
+
                     $o .= $this->output->box_start('generalbox submissionaction');
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
                     $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                        get_string('editsubmission', 'assign'), 'get');
+                        get_string('editsubmission', 'assign'), 'get', array('disabled' => $disabled));
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'removesubmissionconfirm');
                     $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                        get_string('removesubmission', 'assign'), 'get');
+                        get_string('removesubmission', 'assign'), 'get', array('disabled' => $disabled));
                     $o .= $this->output->box_start('boxaligncenter submithelp');
                     $o .= get_string('editsubmission_help', 'assign');
                     $o .= $this->output->box_end();
