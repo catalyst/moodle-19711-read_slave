@@ -655,6 +655,8 @@ class renderer extends \plugin_renderer_base {
      * @return string
      */
     public function render_assign_submission_status(assign_submission_status $status) {
+        global $DB;
+
         $o = '';
         $o .= $this->output->container_start('submissionstatustable');
 
@@ -668,15 +670,30 @@ class renderer extends \plugin_renderer_base {
                     $o .= $this->output->box_start('generalbox submissionaction');
 
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
-                    if ($status->timelimit > 0) {
+                    if ($status->timelimit > 0 && isset($submission->id)) {
+                        $disabled = false;
+                        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                        if ($submissionattempt) {
+                            if (time() - $submissionattempt->timecreated > $status->timelimit) {
+                                $disabled = true;
+                            }
+                        }
+
                         $confirmation = new \confirm_action(
                             get_string('confirmstart', 'assign', format_time($status->timelimit)),
                             null, get_string('addsubmission', 'assign'));
-                        $o .= $this->output->action_link(
-                            new \moodle_url('/mod/assign/view.php', $urlparams),
-                            get_string('addsubmission', 'assign'),
-                            $confirmation,
-                            array('class' => 'btn btn-secondary'));
+                        if ($disabled) {
+                            $notification = get_string('timelimitpassed', 'assign');
+                            $o .= $this->output->notification($notification);
+                            $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
+                                get_string('addsubmission', 'assign'), 'get', array('disabled' => $disabled));
+                        } else {
+                            $o .= $this->output->action_link(
+                                new \moodle_url('/mod/assign/view.php', $urlparams),
+                                get_string('addsubmission', 'assign'),
+                                $confirmation,
+                                array('class' => 'btn btn-secondary'));
+                        }
                     } else {
                         $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
                             get_string('addsubmission', 'assign'), 'get');

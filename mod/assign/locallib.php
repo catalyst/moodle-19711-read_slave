@@ -3784,9 +3784,8 @@ class assign {
 
         if ($submission) {
             if ($create) {
-                $submissionattempt = false;
                 $action = optional_param('action', '', PARAM_TEXT);
-                if ($action) {
+                if ($action == 'editsubmission') {
                     $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
                     if (!$submissionattempt) {
                         $submissionattempt = new stdClass();
@@ -4805,6 +4804,15 @@ class assign {
         if (!$this->submissions_open($userid)) {
             $message = array(get_string('submissionsclosed', 'assign'));
             return $this->view_notices($title, $message);
+        }
+
+        $submission = $this->get_user_submission($userid, false);
+        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+        if ($submissionattempt) {
+            if ((time() - $submissionattempt->timecreated > $this->instance->timelimit)) {
+                $message = array(get_string('timelimitpassed', 'assign'));
+                return $this->view_notices($title, $message);
+            }
         }
 
         $postfix = '';
