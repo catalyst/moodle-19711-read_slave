@@ -4808,7 +4808,7 @@ class assign {
 
         $submission = $this->get_user_submission($userid, false);
         $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-        if ($submissionattempt) {
+        if ($submissionattempt && ($this->instance->timelimit > 0)) {
             if ((time() - $submissionattempt->timecreated > $this->instance->timelimit)) {
                 $message = array(get_string('timelimitpassed', 'assign'));
                 return $this->view_notices($title, $message);
@@ -7521,7 +7521,7 @@ class assign {
      * @return bool
      */
     protected function process_save_submission(&$mform, &$notices) {
-        global $CFG, $USER;
+        global $CFG, $USER, $DB;
 
         // Include submission form.
         require_once($CFG->dirroot . '/mod/assign/submission_form.php');
@@ -7534,6 +7534,17 @@ class assign {
             return false;
         }
         $instance = $this->get_instance();
+
+        $submission = $this->get_user_submission($USER->id, false);
+        if ($this->instance->timelimit > 0) {
+            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+            if ($submissionattempt) {
+                if (time() - $submissionattempt->timecreated > $this->instance->timelimit) {
+                    $notices[] = get_string('timelimitpassed', 'assign');
+                    return false;
+                }
+            }
+        }
 
         $data = new stdClass();
         $data->userid = $userid;

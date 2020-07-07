@@ -670,12 +670,14 @@ class renderer extends \plugin_renderer_base {
                     $o .= $this->output->box_start('generalbox submissionaction');
 
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
-                    if ($status->timelimit > 0 && isset($submission->id)) {
+                    if ($status->timelimit > 0) {
                         $disabled = false;
-                        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-                        if ($submissionattempt) {
-                            if (time() - $submissionattempt->timecreated > $status->timelimit) {
-                                $disabled = true;
+                        if (isset($submission->id)) {
+                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                            if ($submissionattempt) {
+                                if (time() - $submissionattempt->timecreated > $status->timelimit) {
+                                    $disabled = true;
+                                }
                             }
                         }
 
