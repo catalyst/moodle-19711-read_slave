@@ -473,6 +473,8 @@ class renderer extends \plugin_renderer_base {
      * @return string
      */
     public function render_assign_submission_status_compact(\assign_submission_status_compact $status) {
+        global $DB;
+
         $o = '';
         $o .= $this->output->container_start('submissionstatustable');
         $o .= $this->output->heading(get_string('submission', 'assign'), 3);
@@ -568,7 +570,8 @@ class renderer extends \plugin_renderer_base {
 
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
         $duedate = $status->duedate;
-        if ($duedate > 0) {
+        $timelimit = $status->timelimit;
+        if ($duedate > 0  || $timelimit) {
 
             if ($status->extensionduedate) {
                 // Extension date.
@@ -577,7 +580,7 @@ class renderer extends \plugin_renderer_base {
 
             // Time remaining.
             $classname = 'timeremaining';
-            if ($duedate - $time <= 0) {
+            if (($duedate - $time <= 0) || $timelimit) {
                 if (!$submission ||
                     $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     if ($status->submissionsenabled) {
@@ -587,10 +590,19 @@ class renderer extends \plugin_renderer_base {
                         $remaining = get_string('duedatereached', 'assign');
                     }
                 } else {
-                    if ($submission->timemodified > $duedate) {
+                    if (isset($submission->id)) {
+                        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                    }
+
+                    if ($duedate && ($submission->timemodified > $duedate)) {
                         $remaining = get_string('submittedlate',
                                               'assign',
                                               format_time($submission->timemodified - $duedate));
+                        $classname = 'latesubmission';
+                    } else if ($timelimit && $submissionattempt && ($submission->timemodified - $submissionattempt->timecreated > $timelimit)) {
+                        $remaining = get_string('submittedlate',
+                            'assign',
+                            format_time($submission->timemodified - $submissionattempt->timecreated));
                         $classname = 'latesubmission';
                     } else {
                         $remaining = get_string('submittedearly',
@@ -671,31 +683,14 @@ class renderer extends \plugin_renderer_base {
 
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
                     if ($status->timelimit > 0) {
-                        $disabled = false;
-                        if (isset($submission->id)) {
-                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-                            if ($submissionattempt) {
-                                if (time() - $submissionattempt->timecreated > $status->timelimit) {
-                                    $disabled = true;
-                                }
-                            }
-                        }
-
                         $confirmation = new \confirm_action(
                             get_string('confirmstart', 'assign', format_time($status->timelimit)),
                             null, get_string('addsubmission', 'assign'));
-                        if ($disabled) {
-                            $notification = get_string('timelimitpassed', 'assign');
-                            $o .= $this->output->notification($notification);
-                            $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                                get_string('addsubmission', 'assign'), 'get', array('disabled' => $disabled));
-                        } else {
                             $o .= $this->output->action_link(
                                 new \moodle_url('/mod/assign/view.php', $urlparams),
                                 get_string('addsubmission', 'assign'),
                                 $confirmation,
                                 array('class' => 'btn btn-secondary'));
-                        }
                     } else {
                         $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
                             get_string('addsubmission', 'assign'), 'get');
@@ -724,27 +719,13 @@ class renderer extends \plugin_renderer_base {
                     $o .= $this->output->box_end();
                     $o .= $this->output->box_end();
                 } else {
-                    $disabled = false;
-                    if ($status->timelimit > 0) {
-                        if (isset($submission->id)) {
-                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-                            if ($submissionattempt) {
-                                if (time() - $submissionattempt->timecreated > $status->timelimit) {
-                                    $disabled = true;
-                                    $notification = get_string('timelimitpassed', 'assign');
-                                    $o .= $this->output->notification($notification);
-                                }
-                            }
-                        }
-                    }
-
                     $o .= $this->output->box_start('generalbox submissionaction');
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
                     $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                        get_string('editsubmission', 'assign'), 'get', array('disabled' => $disabled));
+                        get_string('editsubmission', 'assign'), 'get');
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'removesubmissionconfirm');
                     $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
-                        get_string('removesubmission', 'assign'), 'get', array('disabled' => $disabled));
+                        get_string('removesubmission', 'assign'), 'get');
                     $o .= $this->output->box_start('boxaligncenter submithelp');
                     $o .= get_string('editsubmission_help', 'assign');
                     $o .= $this->output->box_end();
@@ -907,33 +888,35 @@ class renderer extends \plugin_renderer_base {
         $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
 
         $duedate = $status->duedate;
-        if ($duedate > 0) {
-            // Due date.
-            $cell1content = get_string('duedate', 'assign');
-            $cell2content = userdate($duedate);
-            $this->add_table_row_tuple($t, $cell1content, $cell2content);
+        $timelimit = $status->timelimit;
+        if ($duedate > 0 || $timelimit) {
+            if ($duedate) {
+                // Due date.
+                $cell1content = get_string('duedate', 'assign');
+                $cell2content = userdate($duedate);
+                $this->add_table_row_tuple($t, $cell1content, $cell2content);
 
-            if ($status->view == assign_submission_status::GRADER_VIEW) {
-                if ($status->cutoffdate) {
-                    // Cut off date.
-                    $cell1content = get_string('cutoffdate', 'assign');
-                    $cell2content = userdate($status->cutoffdate);
+                if ($status->view == assign_submission_status::GRADER_VIEW) {
+                    if ($status->cutoffdate) {
+                        // Cut off date.
+                        $cell1content = get_string('cutoffdate', 'assign');
+                        $cell2content = userdate($status->cutoffdate);
+                        $this->add_table_row_tuple($t, $cell1content, $cell2content);
+                    }
+                }
+
+                if ($status->extensionduedate) {
+                    // Extension date.
+                    $cell1content = get_string('extensionduedate', 'assign');
+                    $cell2content = userdate($status->extensionduedate);
                     $this->add_table_row_tuple($t, $cell1content, $cell2content);
+                    $duedate = $status->extensionduedate;
                 }
             }
-
-            if ($status->extensionduedate) {
-                // Extension date.
-                $cell1content = get_string('extensionduedate', 'assign');
-                $cell2content = userdate($status->extensionduedate);
-                $this->add_table_row_tuple($t, $cell1content, $cell2content);
-                $duedate = $status->extensionduedate;
-            }
-
             // Time remaining.
             $cell1content = get_string('timeremaining', 'assign');
             $cell2attributes = [];
-            if ($duedate - $time <= 0) {
+            if (($duedate - $time <= 0) || $timelimit) {
                 if (!$submission ||
                     $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     if ($status->submissionsenabled) {
@@ -943,10 +926,19 @@ class renderer extends \plugin_renderer_base {
                         $cell2content = get_string('duedatereached', 'assign');
                     }
                 } else {
-                    if ($submission->timemodified > $duedate) {
+                    if (isset($submission->id)) {
+                        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                    }
+
+                    if ($duedate && $submission->timemodified > $duedate) {
                         $cell2content = get_string('submittedlate',
-                                              'assign',
-                                              format_time($submission->timemodified - $duedate));
+                            'assign',
+                            format_time($submission->timemodified - $duedate));
+                        $cell2attributes = array('class' => 'latesubmission');
+                    } else if ($timelimit && ($submission->timemodified - $submissionattempt->timecreated > $timelimit)) {
+                        $cell2content = get_string('submittedlate',
+                            'assign',
+                            format_time($submission->timemodified - $submissionattempt->timecreated));
                         $cell2attributes = array('class' => 'latesubmission');
                     } else {
                         $cell2content = get_string('submittedearly',
