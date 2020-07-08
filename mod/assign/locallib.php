@@ -1460,9 +1460,13 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
-        $update->activity = $this->save_editor_draft_files($formdata);
-        $update->activityformat = $formdata->activityeditor['format'];
-        $update->submissionattachments = $formdata->submissionattachments;
+        if (isset($formdata->activityeditor)) {
+            $update->activity = $this->save_editor_draft_files($formdata);
+            $update->activityformat = $formdata->activityeditor['format'];
+        }
+        if (isset($formdata->submissionattachments)) {
+            $update->submissionattachments = $formdata->submissionattachments;
+        }
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -1473,7 +1477,9 @@ class assign {
         }
         $update->duedate = $formdata->duedate;
         $update->cutoffdate = $formdata->cutoffdate;
-        $update->timelimit = $formdata->timelimit;
+        if (isset($formdata->timelimit)) {
+            $update->timelimit = $formdata->timelimit;
+        }
         $update->gradingduedate = $formdata->gradingduedate;
         $update->allowsubmissionsfromdate = $formdata->allowsubmissionsfromdate;
         $update->grade = $formdata->grade;
@@ -4834,11 +4840,13 @@ class assign {
             $submission = $this->get_user_submission($userid, false);
         }
 
-        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-        if ($submissionattempt && ($this->instance->timelimit > 0)) {
-            if ((time() - $submissionattempt->timecreated > $this->instance->timelimit)) {
-                $message = array(get_string('timelimitpassed', 'assign'));
-                return $this->view_notices($title, $message);
+        if (isset($submission->id)) {
+            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+            if ($submissionattempt && ($this->instance->timelimit > 0)) {
+                if ((time() - $submissionattempt->timecreated > $this->instance->timelimit)) {
+                    $message = array(get_string('timelimitpassed', 'assign'));
+                    return $this->view_notices($title, $message);
+                }
             }
         }
 
