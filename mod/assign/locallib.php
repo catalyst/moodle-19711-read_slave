@@ -4846,11 +4846,14 @@ class assign {
             $mform = new mod_assign_submission_form(null, array($this, $data));
         }
 
-        $output = $this->get_renderer();
-        $navbc = $this->get_timelimit_panel($output);
-        $regions = $PAGE->blocks->get_regions();
-        $PAGE->blocks->add_fake_block($navbc, reset($regions));
-
+        $usersubmission = $this->get_user_submission($USER->id, false);
+        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $usersubmission->id));
+        if ($submissionattempt) {
+            $output = $this->get_renderer();
+            $navbc = $this->get_timelimit_panel($output, $submissionattempt);
+            $regions = $PAGE->blocks->get_regions();
+            $PAGE->blocks->add_fake_block($navbc, reset($regions));
+        }
         $o .= $this->get_renderer()->render(new assign_header($this->get_instance(),
                                                       $this->get_context(),
                                                       $this->show_intro(),
@@ -4878,13 +4881,8 @@ class assign {
      * @param renderer $output the assign renderer to use to output things.
      * @return block_contents the requested object.
      */
-    public function get_timelimit_panel(renderer $output) {
-        global $USER, $DB;
-        $usersubmission = $this->get_user_submission($USER->id, false);
-        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $usersubmission->id));
-
+    public function get_timelimit_panel(renderer $output, $submissionattempt) {
         $panel = new \assign_attempt_timelimit_panel($submissionattempt, $this->get_instance());
-
         $bc = new block_contents();
         $bc->attributes['id'] = 'mod_assign_timelimit_block';
         $bc->attributes['role'] = 'navigation';
