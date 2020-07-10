@@ -1568,5 +1568,80 @@ class renderer extends \plugin_renderer_base {
         return trim(format_text($activity, $assign->activityformat, $options, null));
     }
 
+    /**
+     * Outputs the timelimit block panel
+     *
+     * @param \assign_attempt_timelimit_panel $panel instance of assign_attempt_timelimit_panel
+     */
+    public function timelimit_panel(\assign_attempt_timelimit_panel $panel) {
+
+        $output = '';
+        $output .= \html_writer::tag('div', $panel->render_end_bits($this),
+            array('class' => 'othernav'));
+
+        $this->page->requires->js_init_call('M.mod_assign.nav.init', null, false,
+            assign_get_js_module());
+
+        return $output;
+    }
+
+    /**
+     * Return the HTML of the assign timer.
+     * @return string HTML content.
+     */
+    public function countdown_timer(\stdClass $submissionattempt, $assign, $timenow) {
+
+        $timeleft = $this->get_time_left_display($submissionattempt, $assign, $timenow);
+        if ($timeleft !== false) {
+            $timerstartvalue = $timeleft;
+            $this->initialise_timer($timerstartvalue);
+        }
+
+        return \html_writer::tag('div', \html_writer::tag('span', '', array('id' => 'assign-time-left')),
+            array('id' => 'assign-timer', 'role' => 'timer',
+                'aria-atomic' => 'true', 'aria-relevant' => 'text'));
+    }
+
+    /**
+     * Output the JavaScript required to initialise the countdown timer.
+     * @param int $timerstartvalue time remaining, in seconds.
+     */
+    public function initialise_timer($timerstartvalue) {
+        $options = array($timerstartvalue);
+        $this->page->requires->js_init_call('M.mod_assign.timer.init', $options, false, assign_get_js_module());
+    }
+
+    /**
+     * Compute what should be displayed to the user for time remaining in this attempt.
+     *
+     * @param object $attempt the data from the relevant assign attempt.
+     * @param int $timenow the time to consider as 'now'.
+     * @return int|false the number of seconds remaining for this attempt.
+     *      False if no limit should be displayed.
+     */
+    public function get_time_left_display($attempt, $assign, $timenow) {
+        $timeleft = false;
+        $ruletimeleft = $this->time_left_display($attempt, $assign, $timenow);
+        if ($ruletimeleft !== false && ($timeleft === false || $ruletimeleft < $timeleft)) {
+            $timeleft = $ruletimeleft;
+        }
+        return $timeleft;
+    }
+
+    public function end_time($attempt, $assign) {
+        $timedue = $attempt->timecreated + $assign->timelimit;
+        if ($assign->duedate) {
+            $timedue = min($timedue, $assign->duedate);
+        }
+        return $timedue;
+    }
+
+    public function time_left_display($attempt, $assign, $timenow) {
+        $endtime = $this->end_time($attempt, $assign);
+        if ($timenow > $endtime) {
+            return false;
+        }
+        return $endtime - $timenow;
+    }
 
 }

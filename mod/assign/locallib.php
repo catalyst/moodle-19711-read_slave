@@ -96,6 +96,7 @@ require_once($CFG->libdir . '/portfolio/caller.php');
 use \mod_assign\output\grading_app;
 use \mod_assign\output\assign_header;
 use \mod_assign\output\assign_submission_status;
+use mod_assign\output\renderer;
 
 /**
  * Standard base class for mod_assign (assignment types).
@@ -4799,7 +4800,7 @@ class assign {
      * @return string The page output.
      */
     protected function view_edit_submission_page($mform, $notices) {
-        global $CFG, $USER, $DB;
+        global $CFG, $USER, $DB, $PAGE;
 
         $o = '';
         require_once($CFG->dirroot . '/mod/assign/submission_form.php');
@@ -4838,6 +4839,18 @@ class assign {
         if ($this->has_visible_attachments()) {
             $postfix = $this->render_area_files('mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA, 0);
         }
+
+        $data = new stdClass();
+        $data->userid = $userid;
+        if (!$mform) {
+            $mform = new mod_assign_submission_form(null, array($this, $data));
+        }
+
+        $output = $this->get_renderer();
+        $navbc = $this->get_timelimit_panel($output);
+        $regions = $PAGE->blocks->get_regions();
+        $PAGE->blocks->add_fake_block($navbc, reset($regions));
+
         $o .= $this->get_renderer()->render(new assign_header($this->get_instance(),
                                                       $this->get_context(),
                                                       $this->show_intro(),
@@ -4847,23 +4860,38 @@ class assign {
         // Show plagiarism disclosure for any user submitter.
         $o .= $this->plagiarism_print_disclosure();
 
-        $data = new stdClass();
-        $data->userid = $userid;
-        if (!$mform) {
-            $mform = new mod_assign_submission_form(null, array($this, $data));
-        }
-
         foreach ($notices as $notice) {
             $o .= $this->get_renderer()->notification($notice);
         }
 
         $o .= $this->get_renderer()->render(new assign_form('editsubmissionform', $mform));
-
         $o .= $this->view_footer();
 
         \mod_assign\event\submission_form_viewed::create_from_user($this, $user)->trigger();
 
         return $o;
+    }
+
+    /**
+     * Get the time limit panel object for this submission attempt.
+     *
+     * @param renderer $output the assign renderer to use to output things.
+     * @return block_contents the requested object.
+     */
+    public function get_timelimit_panel(renderer $output) {
+        global $USER, $DB;
+        $usersubmission = $this->get_user_submission($USER->id, false);
+        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $usersubmission->id));
+
+        $panel = new \assign_attempt_timelimit_panel($submissionattempt, $this->get_instance());
+
+        $bc = new block_contents();
+        $bc->attributes['id'] = 'mod_assign_timelimit_block';
+        $bc->attributes['role'] = 'navigation';
+        $bc->attributes['aria-labelledby'] = 'mod_assign_timelimit_block_title';
+        $bc->title = html_writer::span(get_string('assigntimeleft', 'assign'), '', array('id' => 'mod_assign_timelimit_title'));
+        $bc->content = $output->timelimit_panel($panel);
+        return $bc;
     }
 
     /**
@@ -9774,6 +9802,28 @@ class assign_portfolio_caller extends portfolio_module_caller_base {
 }
 
 /**
+ * Represents the timer panel.
+ *
+ * @copyright  2020 Ilya Tregubov <ilyatregubov@catalyst-au.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since      Moodle 2.0
+ */
+class assign_attempt_timelimit_panel {
+    protected $submissionattempt;
+    protected $assign;
+
+    public function __construct(stdClass $submission, $assign) {
+        $this->submission = $submission;
+        $this->assign = $assign;
+    }
+
+    public function render_end_bits(renderer $output) {
+        return $output->countdown_timer($this->submission, $this->assign, time());
+    }
+
+}
+
+/**
  * Logic to happen when a/some group(s) has/have been deleted in a course.
  *
  * @param int $courseid The course ID.
@@ -9878,4 +9928,15 @@ function reorder_group_overrides($assignid) {
             $DB->set_field('event', 'priority', $f->sortorder, $params);
         }
     }
+}
+
+/**
+ * Get the information about the standard assign JavaScript module.
+ * @return array a standard jsmodule structure.
+ */
+function assign_get_js_module() {
+    return array(
+        'name' => 'mod_assign',
+        'fullpath' => '/mod/assign/module.js',
+    );
 }

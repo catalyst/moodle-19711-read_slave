@@ -1239,3 +1239,84 @@
     padding: 0;
 }
 /** End of YUI tree fix **/
+
+/* Countdown timer. */
+
+#mod_assign_timelimit_title {
+    font-weight: bold;
+    font-size: 1.6em;
+}
+
+#assign-timer {
+    display: none;
+    margin-top: 1em;
+    font-size: 1.6em;
+}
+
+#assign-time-left {
+    font-weight: bold;
+}
+
+#assign-timer.timeleft15 {
+    background: #fff;
+}
+
+#assign-timer.timeleft14 {
+    background: #fee;
+}
+
+#assign-timer.timeleft13 {
+    background: #fdd;
+}
+
+#assign-timer.timeleft12 {
+    background: #fcc;
+}
+
+#assign-timer.timeleft11 {
+    background: #fbb;
+}
+
+#assign-timer.timeleft10 {
+    background: #faa;
+}
+
+#assign-timer.timeleft9 {
+    background: #f99;
+}
+
+#assign-timer.timeleft8 {
+    background: #f88;
+}
+
+#assign-timer.timeleft7 {
+    background: #f77;
+}
+
+#assign-timer.timeleft6 {
+    background: #f66;
+}
+
+#assign-timer.timeleft5 {
+    background: #f55;
+}
+
+#assign-timer.timeleft4 {
+    background: #f44;
+}
+
+#assign-timer.timeleft3 {
+    background: #f33;
+}
+
+#assign-timer.timeleft2 {
+    background: #f22;
+}
+
+#assign-timer.timeleft1 {
+    background: #f11;
+}
+
+#assign-timer.timeleft0 {
+    background: #f00;
+}

@@ -644,3 +644,4 @@ $string['nosubmissionsacceptedafter'] = 'No submissions accepted after ';
 $string['notsubmittedyet'] = 'Not submitted yet';
 $string['submissionsnotgraded'] = 'Submissions not graded: {$a}';
 $string['timelimitpassed'] = 'Time limit has been passed';
+$string['assigntimeleft'] = 'Time left';

@@ -225,3 +225,131 @@ M.mod_assign.init_plugin_summary = function(Y, subtype, type, submissionid) {
         });
     }
 };
+
+// Code for updating the countdown timer that is used on timed assignments.
+M.mod_assign.timer = {
+    // YUI object.
+    Y: null,
+
+    // Timestamp at which time runs out, according to the student's computer's clock.
+    endtime: 0,
+
+    // This records the id of the timeout that updates the clock periodically,
+    // so we can cancel.
+    timeoutid: null,
+
+    /**
+     * @param Y the YUI object
+     * @param start, the timer starting time, in seconds.
+     */
+    init: function(Y, start) {
+        M.mod_assign.timer.Y = Y;
+        M.mod_assign.timer.endtime = M.pageloadstarttime.getTime() + start*1000;
+        M.mod_assign.timer.update();
+        Y.one('#assign-timer').setStyle('display', 'block');
+    },
+
+    /**
+     * Stop the timer, if it is running.
+     */
+    stop: function(e) {
+        if (M.mod_assign.timer.timeoutid) {
+            clearTimeout(M.mod_assign.timer.timeoutid);
+        }
+    },
+
+    /**
+     * Function to convert a number between 0 and 99 to a two-digit string.
+     */
+    two_digit: function(num) {
+        if (num < 10) {
+            return '0' + num;
+        } else {
+            return num;
+        }
+    },
+
+    // Function to update the clock with the current time left.
+    update: function() {
+        var Y = M.mod_assign.timer.Y;
+        var secondsleft = Math.floor((M.mod_assign.timer.endtime - new Date().getTime())/1000);
+
+        // If time has expired, set the hidden form field that says time has expired and submit
+        if (secondsleft < 0) {
+            M.mod_assign.timer.stop(null);
+            return;
+        }
+
+        // If time has nearly expired, change the colour.
+        if (secondsleft < 100) {
+            Y.one('#assign-timer').removeClass('timeleft' + (secondsleft + 2))
+                .removeClass('timeleft' + (secondsleft + 1))
+                .addClass('timeleft' + secondsleft);
+        }
+
+        // Update the time display.
+        var hours = Math.floor(secondsleft/3600);
+        secondsleft -= hours*3600;
+        var minutes = Math.floor(secondsleft/60);
+        secondsleft -= minutes*60;
+        var seconds = secondsleft;
+        Y.one('#assign-time-left').setContent(hours + ':' +
+            M.mod_assign.timer.two_digit(minutes) + ':' +
+            M.mod_assign.timer.two_digit(seconds));
+
+        // Arrange for this method to be called again soon.
+        M.mod_assign.timer.timeoutid = setTimeout(M.mod_assign.timer.update, 100);
+    }
+};
+
+M.mod_assign.nav = M.mod_assign.nav || {};
+
+M.mod_assign.nav.init = function(Y) {
+    M.mod_assign.nav.Y = Y;
+
+    Y.all('#quiznojswarning').remove();
+
+    var form = Y.one('#responseform');
+    if (form) {
+        function nav_to_page(pageno) {
+            Y.one('#followingpage').set('value', pageno);
+
+            // Automatically submit the form. We do it this strange way because just
+            // calling form.submit() does not run the form's submit event handlers.
+            var submit = form.one('input[name="next"]');
+            submit.set('name', '');
+            submit.getDOMNode().click();
+        };
+
+        Y.delegate('click', function(e) {
+            if (this.hasClass('thispage')) {
+                return;
+            }
+
+            e.preventDefault();
+
+            var pageidmatch = this.get('href').match(/page=(\d+)/);
+            var pageno;
+            if (pageidmatch) {
+                pageno = pageidmatch[1];
+            } else {
+                pageno = 0;
+            }
+
+            var questionidmatch = this.get('href').match(/#q(\d+)/);
+            if (questionidmatch) {
+                form.set('action', form.get('action') + '#q' + questionidmatch[1]);
+            }
+
+            nav_to_page(pageno);
+        }, document.body, '.qnbutton');
+    }
+
+    if (Y.one('a.endtestlink')) {
+        Y.on('click', function(e) {
+            e.preventDefault();
+            nav_to_page(-1);
+        }, 'a.endtestlink');
+    }
+
+};
