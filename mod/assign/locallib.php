@@ -4846,8 +4846,13 @@ class assign {
             $mform = new mod_assign_submission_form(null, array($this, $data));
         }
 
-        $usersubmission = $this->get_user_submission($USER->id, false);
-        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $usersubmission->id));
+        if ($this->get_instance()->teamsubmission) {
+            $submission = $this->get_group_submission($userid, 0, false);
+        } else {
+            $submission = $this->get_user_submission($userid, false);
+        }
+
+        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
         if ($submissionattempt) {
             $output = $this->get_renderer();
             $navbc = $this->get_timelimit_panel($output, $submissionattempt);
