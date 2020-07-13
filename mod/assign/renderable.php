@@ -526,6 +526,8 @@ class assign_grading_summary implements renderable {
     public $duedate = 0;
     /** @var int cutoffdate - The assignment cut off date (if one is set) */
     public $cutoffdate = 0;
+    /** @var int timelimit - The assignment time limit (if one is set) */
+    public $timelimit = 0;
     /** @var int coursemoduleid - The assignment course module id */
     public $coursemoduleid = 0;
     /** @var boolean teamsubmission - Are team submissions enabled for this assignment */
@@ -558,6 +560,7 @@ class assign_grading_summary implements renderable {
      * @param int $submissionssubmittedcount
      * @param int $cutoffdate
      * @param int $duedate
+     * @param int $timelimit
      * @param int $coursemoduleid
      * @param int $submissionsneedgradingcount
      * @param bool $teamsubmission
@@ -574,6 +577,7 @@ class assign_grading_summary implements renderable {
                                 $submissionssubmittedcount,
                                 $cutoffdate,
                                 $duedate,
+                                $timelimit,
                                 $coursemoduleid,
                                 $submissionsneedgradingcount,
                                 $teamsubmission,
@@ -589,6 +593,7 @@ class assign_grading_summary implements renderable {
         $this->submissionssubmittedcount = $submissionssubmittedcount;
         $this->duedate = $duedate;
         $this->cutoffdate = $cutoffdate;
+        $this->timelimit = $timelimit;
         $this->coursemoduleid = $coursemoduleid;
         $this->submissionsneedgradingcount = $submissionsneedgradingcount;
         $this->teamsubmission = $teamsubmission;

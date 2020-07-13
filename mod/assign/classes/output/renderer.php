@@ -920,7 +920,12 @@ class renderer extends \plugin_renderer_base {
                 if (!$submission ||
                     $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     if ($status->submissionsenabled) {
-                        $cell2content = get_string('overdue', 'assign', format_time($time - $duedate));
+                        if ($timelimit) {
+                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                            $cell2content = get_string('overdue', 'assign', format_time($time - $submissionattempt->timecreated));
+                        } else {
+                            $cell2content = get_string('overdue', 'assign', format_time($time - $duedate));
+                        }
                         $cell2attributes = array('class' => 'overdue');
                     } else {
                         $cell2content = get_string('duedatereached', 'assign');
