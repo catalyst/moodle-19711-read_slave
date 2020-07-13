@@ -4853,7 +4853,7 @@ class assign {
         }
 
         $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-        if ($submissionattempt) {
+        if ($submissionattempt && $this->get_instance()->timelimit) {
             $output = $this->get_renderer();
             $navbc = $this->get_timelimit_panel($output, $submissionattempt);
             $regions = $PAGE->blocks->get_regions();
