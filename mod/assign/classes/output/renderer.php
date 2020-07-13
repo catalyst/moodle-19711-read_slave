@@ -914,42 +914,39 @@ class renderer extends \plugin_renderer_base {
                 }
             }
             // Time remaining.
-            $cell1content = get_string('timeremaining', 'assign');
-            $cell2attributes = [];
-            if (($duedate - $time <= 0) || $timelimit) {
-                if (!$submission ||
-                    $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
-                    if ($status->submissionsenabled) {
-                        if ($timelimit) {
-                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-                            $cell2content = get_string('overdue', 'assign', format_time($time - $submissionattempt->timecreated));
-                        } else {
+            if ($duedate > 0) {
+                $cell1content = get_string('timeremaining', 'assign');
+                $cell2attributes = [];
+                if (($duedate - $time <= 0) || $timelimit) {
+                    if (!$submission ||
+                        $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                        if ($status->submissionsenabled) {
                             $cell2content = get_string('overdue', 'assign', format_time($time - $duedate));
+                            $cell2attributes = array('class' => 'overdue');
+                        } else {
+                            $cell2content = get_string('duedatereached', 'assign');
                         }
-                        $cell2attributes = array('class' => 'overdue');
                     } else {
-                        $cell2content = get_string('duedatereached', 'assign');
-                    }
-                } else {
-                    if (isset($submission->id)) {
-                        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-                    }
+                        if (isset($submission->id)) {
+                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                        }
 
-                    if ($duedate && $submission->timemodified > $duedate) {
-                        $cell2content = get_string('submittedlate',
-                            'assign',
-                            format_time($submission->timemodified - $duedate));
-                        $cell2attributes = array('class' => 'latesubmission');
-                    } else if ($timelimit && ($submission->timemodified - $submissionattempt->timecreated > $timelimit)) {
-                        $cell2content = get_string('submittedlate',
-                            'assign',
-                            format_time($submission->timemodified - $submissionattempt->timecreated));
-                        $cell2attributes = array('class' => 'latesubmission');
-                    } else {
-                        $cell2content = get_string('submittedearly',
-                                               'assign',
-                                               format_time($submission->timemodified - $duedate));
-                        $cell2attributes = array('class' => 'earlysubmission');
+                        if ($duedate && $submission->timemodified > $duedate) {
+                            $cell2content = get_string('submittedlate',
+                                'assign',
+                                format_time($submission->timemodified - $duedate));
+                            $cell2attributes = array('class' => 'latesubmission');
+                        } else if ($timelimit && ($submission->timemodified - $submissionattempt->timecreated > $timelimit)) {
+                            $cell2content = get_string('submittedlate',
+                                'assign',
+                                format_time($submission->timemodified - $submissionattempt->timecreated));
+                            $cell2attributes = array('class' => 'latesubmission');
+                        } else {
+                            $cell2content = get_string('submittedearly',
+                                'assign',
+                                format_time($submission->timemodified - $duedate));
+                            $cell2attributes = array('class' => 'earlysubmission');
+                        }
                     }
                 }
             } else {
