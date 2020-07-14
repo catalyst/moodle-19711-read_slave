@@ -960,10 +960,14 @@ class renderer extends \plugin_renderer_base {
             $cell1content = get_string('timelimit', 'assign');
             $cell2content = format_time($status->timelimit);
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
-            $assign = new \assign($status->context, null, null);
-            $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
             $cell1content = get_string('assigntimeleft', 'assign');
-            $cell2content = $navbc->content;
+            if ($submissionattempt) {
+                $assign = new \assign($status->context, null, null);
+                $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
+                $cell2content = $navbc->content;
+            } else {
+                $cell2content = format_time($status->timelimit);
+            }
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
 
         }
