@@ -889,87 +889,82 @@ class renderer extends \plugin_renderer_base {
 
         $duedate = $status->duedate;
         $timelimit = $status->timelimit;
-        if ($duedate > 0 || $timelimit) {
-            if ($duedate) {
-                // Due date.
-                $cell1content = get_string('duedate', 'assign');
-                $cell2content = userdate($duedate);
-                $this->add_table_row_tuple($t, $cell1content, $cell2content);
+        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
 
-                if ($status->view == assign_submission_status::GRADER_VIEW) {
-                    if ($status->cutoffdate) {
-                        // Cut off date.
-                        $cell1content = get_string('cutoffdate', 'assign');
-                        $cell2content = userdate($status->cutoffdate);
-                        $this->add_table_row_tuple($t, $cell1content, $cell2content);
-                    }
-                }
+        if ($duedate > 0) {
+            // Due date.
+            $cell1content = get_string('duedate', 'assign');
+            $cell2content = userdate($duedate);
+            $this->add_table_row_tuple($t, $cell1content, $cell2content);
 
-                if ($status->extensionduedate) {
-                    // Extension date.
-                    $cell1content = get_string('extensionduedate', 'assign');
-                    $cell2content = userdate($status->extensionduedate);
+            if ($status->view == assign_submission_status::GRADER_VIEW) {
+                if ($status->cutoffdate) {
+                    // Cut off date.
+                    $cell1content = get_string('cutoffdate', 'assign');
+                    $cell2content = userdate($status->cutoffdate);
                     $this->add_table_row_tuple($t, $cell1content, $cell2content);
-                    $duedate = $status->extensionduedate;
                 }
             }
-            // Time remaining.
-            if ($duedate > 0) {
-                $cell1content = get_string('timeremaining', 'assign');
-                $cell2attributes = [];
-                if (($duedate - $time <= 0) || $timelimit) {
-                    if (!$submission ||
-                        $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
-                        if ($status->submissionsenabled) {
-                            $cell2content = get_string('overdue', 'assign', format_time($time - $duedate));
-                            $cell2attributes = array('class' => 'overdue');
-                        } else {
-                            $cell2content = get_string('duedatereached', 'assign');
-                        }
-                    } else {
-                        if (isset($submission->id)) {
-                            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-                        }
 
-                        if ($duedate && $submission->timemodified > $duedate) {
-                            $cell2content = get_string('submittedlate',
-                                'assign',
-                                format_time($submission->timemodified - $duedate));
-                            $cell2attributes = array('class' => 'latesubmission');
-                        } else if ($timelimit && ($submission->timemodified - $submissionattempt->timecreated > $timelimit)) {
-                            $cell2content = get_string('submittedlate',
-                                'assign',
-                                format_time($submission->timemodified - $submissionattempt->timecreated));
-                            $cell2attributes = array('class' => 'latesubmission');
-                        } else {
-                            $cell2content = get_string('submittedearly',
-                                'assign',
-                                format_time($submission->timemodified - $duedate));
-                            $cell2attributes = array('class' => 'earlysubmission');
-                        }
+            if ($status->extensionduedate) {
+                // Extension date.
+                $cell1content = get_string('extensionduedate', 'assign');
+                $cell2content = userdate($status->extensionduedate);
+                $this->add_table_row_tuple($t, $cell1content, $cell2content);
+                $duedate = $status->extensionduedate;
+            }
+            // Time remaining.
+            $cell1content = get_string('timeremaining', 'assign');
+            $cell2attributes = [];
+            if ($duedate - $time <= 0) {
+                if (!$submission ||
+                    $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                    if ($status->submissionsenabled) {
+                        $cell2content = get_string('overdue', 'assign', format_time($time - $duedate));
+                        $cell2attributes = array('class' => 'overdue');
+                    } else {
+                        $cell2content = get_string('duedatereached', 'assign');
+                    }
+                } else {
+                    if ($submission->timemodified > $duedate) {
+                        $cell2content = get_string('submittedlate',
+                            'assign',
+                            format_time($submission->timemodified - $duedate));
+                        $cell2attributes = array('class' => 'latesubmission');
+                    } else {
+                        $cell2content = get_string('submittedearly',
+                            'assign',
+                            format_time($submission->timemodified - $duedate));
+                        $cell2attributes = array('class' => 'earlysubmission');
                     }
                 }
             } else {
                 $cell2content = format_time($duedate - $time);
+                if ($timelimit && $submissionattempt->timecreated) {
+                    $assign = new \assign($status->context, null, null);
+                    $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
+                    $cell2content = $navbc->content;
+                    if ($time - $submissionattempt->timecreated > $timelimit) {
+                        if ($submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                            $cell2content = get_string('overdue', 'assign', format_time($time - $submissionattempt->timecreated - $timelimit));
+                            $cell2attributes = array('class' => 'overdue');
+                        } else {
+                            $cell2content = get_string('submittedlate',
+                                'assign',
+                                format_time($time - $submissionattempt->timecreated - $timelimit));
+                            $cell2attributes = array('class' => 'latesubmission');
+                        }
+                    }
+                }
             }
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
-        }
 
-        // Add time limit info if there is one.
-        if ($status->timelimit > 0) {
-            $cell1content = get_string('timelimit', 'assign');
-            $cell2content = format_time($status->timelimit);
-            $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
-            $cell1content = get_string('assigntimeleft', 'assign');
-            if ($submissionattempt) {
-                $assign = new \assign($status->context, null, null);
-                $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
-                $cell2content = $navbc->content;
-            } else {
+            // Add time limit info if there is one.
+            if ($status->timelimit > 0) {
+                $cell1content = get_string('timelimit', 'assign');
                 $cell2content = format_time($status->timelimit);
+                $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
             }
-            $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
-
         }
 
         // Show graders whether this submission is editable by students.
@@ -1644,6 +1639,8 @@ class renderer extends \plugin_renderer_base {
         $timedue = $attempt->timecreated + $assign->timelimit;
         if ($assign->duedate) {
             $timedue = min($timedue, $assign->duedate);
+        } else if ($assign->cutoffdate) {
+            $timedue = min($timedue, $assign->cutoffdate);
         }
         return $timedue;
     }
