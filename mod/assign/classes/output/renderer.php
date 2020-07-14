@@ -888,8 +888,11 @@ class renderer extends \plugin_renderer_base {
         $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
 
         $duedate = $status->duedate;
+        $cutoffdate = $status->cutoffdate;
         $timelimit = $status->timelimit;
-        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+        if (isset($submission->id)) {
+            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+        }
 
         if ($duedate > 0) {
             // Due date.
@@ -940,7 +943,7 @@ class renderer extends \plugin_renderer_base {
                 }
             } else {
                 $cell2content = format_time($duedate - $time);
-                if ($timelimit && $submissionattempt->timecreated) {
+                if ($timelimit && isset($submissionattempt)) {
                     $assign = new \assign($status->context, null, null);
                     $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                     $cell2content = $navbc->content;
@@ -959,12 +962,26 @@ class renderer extends \plugin_renderer_base {
             }
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
 
-            // Add time limit info if there is one.
-            if ($status->timelimit > 0) {
-                $cell1content = get_string('timelimit', 'assign');
-                $cell2content = format_time($status->timelimit);
-                $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
+        } else if ($cutoffdate > 0) {
+
+            // Time remaining.
+            $cell1content = get_string('timeremaining', 'assign');
+            $cell2attributes = [];
+            $cell2content = format_time($duedate - $time);
+            if ($timelimit && $submissionattempt->timecreated) {
+                $assign = new \assign($status->context, null, null);
+                $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
+                $cell2content = $navbc->content;
             }
+            $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
+
+        }
+
+        // Add time limit info if there is one.
+        if ($status->timelimit > 0) {
+            $cell1content = get_string('timelimit', 'assign');
+            $cell2content = format_time($status->timelimit);
+            $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);
         }
 
         // Show graders whether this submission is editable by students.
