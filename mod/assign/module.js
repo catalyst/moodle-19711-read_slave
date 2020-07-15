@@ -301,3 +301,55 @@ M.mod_assign.timer = {
         M.mod_assign.timer.timeoutid = setTimeout(M.mod_assign.timer.update, 100);
     }
 };
+
+M.mod_assign.nav = M.mod_assign.nav || {};
+
+M.mod_assign.nav.init = function(Y) {
+    M.mod_assign.nav.Y = Y;
+
+    Y.all('#quiznojswarning').remove();
+
+    var form = Y.one('#responseform');
+    if (form) {
+        function nav_to_page(pageno) {
+            Y.one('#followingpage').set('value', pageno);
+
+            // Automatically submit the form. We do it this strange way because just
+            // calling form.submit() does not run the form's submit event handlers.
+            var submit = form.one('input[name="next"]');
+            submit.set('name', '');
+            submit.getDOMNode().click();
+        };
+
+        Y.delegate('click', function(e) {
+            if (this.hasClass('thispage')) {
+                return;
+            }
+
+            e.preventDefault();
+
+            var pageidmatch = this.get('href').match(/page=(\d+)/);
+            var pageno;
+            if (pageidmatch) {
+                pageno = pageidmatch[1];
+            } else {
+                pageno = 0;
+            }
+
+            var questionidmatch = this.get('href').match(/#q(\d+)/);
+            if (questionidmatch) {
+                form.set('action', form.get('action') + '#q' + questionidmatch[1]);
+            }
+
+            nav_to_page(pageno);
+        }, document.body, '.qnbutton');
+    }
+
+    if (Y.one('a.endtestlink')) {
+        Y.on('click', function(e) {
+            e.preventDefault();
+            nav_to_page(-1);
+        }, 'a.endtestlink');
+    }
+
+};
