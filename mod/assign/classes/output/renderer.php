@@ -1620,6 +1620,10 @@ class renderer extends \plugin_renderer_base {
         if ($timeleft !== false) {
             $timerstartvalue = $timeleft;
             $this->initialise_timer($timerstartvalue);
+        } else {
+            return \html_writer::tag('div', \html_writer::tag('span', '0:00:00', array('id' => 'assign-time-left')),
+                array('id' => 'assign-timer', 'role' => 'timer',
+                    'aria-atomic' => 'true', 'aria-relevant' => 'text'));
         }
 
         return \html_writer::tag('div', \html_writer::tag('span', '', array('id' => 'assign-time-left')),
