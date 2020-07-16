@@ -943,22 +943,21 @@ class renderer extends \plugin_renderer_base {
                     }
                 }
             } else {
-                $cell2content = format_time($duedate - $time);
                 if ($timelimit && isset($submissionattempt->id)) {
                     $assign = new \assign($status->context, null, null);
                     $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                     $cell2content = $navbc->content;
-                    if ($time - $submissionattempt->timecreated > $timelimit) {
-                        if ($submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
-                            $cell2content = get_string('overdue', 'assign', format_time($time - $submissionattempt->timecreated - $timelimit));
-                            $cell2attributes = array('class' => 'overdue');
-                        } else {
-                            $cell2content = get_string('submittedlate',
-                                'assign',
-                                format_time($time - $submissionattempt->timecreated - $timelimit));
-                            $cell2attributes = array('class' => 'latesubmission');
-                        }
+                    if (($submission->timemodified - $submissionattempt->timecreated > $timelimit) && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                        $cell2content = get_string('submittedlate',
+                            'assign',
+                            format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
+                        $cell2attributes = array('class' => 'latesubmission');
                     }
+                } else if ($submission->timemodified < $duedate) {
+                    $cell2content = get_string('submittedearly',
+                        'assign',
+                        format_time($submission->timemodified - $duedate));
+                    $cell2attributes = array('class' => 'earlysubmission');
                 }
             }
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
