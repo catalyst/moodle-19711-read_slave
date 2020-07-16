@@ -890,6 +890,7 @@ class renderer extends \plugin_renderer_base {
         $duedate = $status->duedate;
         $cutoffdate = $status->cutoffdate;
         $timelimit = $status->timelimit;
+        $submissionattempt = new \stdClass();
         if (isset($submission->id)) {
             $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
         }
@@ -943,7 +944,7 @@ class renderer extends \plugin_renderer_base {
                 }
             } else {
                 $cell2content = format_time($duedate - $time);
-                if ($timelimit && isset($submissionattempt)) {
+                if ($timelimit && isset($submissionattempt->id)) {
                     $assign = new \assign($status->context, null, null);
                     $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                     $cell2content = $navbc->content;
