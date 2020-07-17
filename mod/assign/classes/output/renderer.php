@@ -953,7 +953,7 @@ class renderer extends \plugin_renderer_base {
                             format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
                         $cell2attributes = array('class' => 'latesubmission');
                     }
-                } else if ($submission->timemodified < $duedate) {
+                } else if ($submission && $submission->timemodified < $duedate) {
                     $cell2content = get_string('submittedearly',
                         'assign',
                         format_time($submission->timemodified - $duedate));
