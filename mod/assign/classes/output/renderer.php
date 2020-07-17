@@ -953,11 +953,13 @@ class renderer extends \plugin_renderer_base {
                             format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
                         $cell2attributes = array('class' => 'latesubmission');
                     }
-                } else if ($submission && $submission->timemodified < $duedate) {
+                } else if ($submission && $submission->timemodified < $duedate && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     $cell2content = get_string('submittedearly',
                         'assign',
                         format_time($submission->timemodified - $duedate));
                     $cell2attributes = array('class' => 'earlysubmission');
+                } else {
+                    $cell2content = format_time($duedate - $time);
                 }
             }
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
