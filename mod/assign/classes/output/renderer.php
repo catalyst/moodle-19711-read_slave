@@ -571,7 +571,11 @@ class renderer extends \plugin_renderer_base {
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
         $duedate = $status->duedate;
         $timelimit = $status->timelimit;
-        if ($duedate > 0  || $timelimit) {
+        $submissionattempt = new \stdClass();
+        if (isset($submission->id)) {
+            $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+        }
+        if ($duedate > 0) {
 
             if ($status->extensionduedate) {
                 // Extension date.
@@ -580,7 +584,7 @@ class renderer extends \plugin_renderer_base {
 
             // Time remaining.
             $classname = 'timeremaining';
-            if (($duedate - $time <= 0) || $timelimit) {
+            if ($duedate - $time <= 0) {
                 if (!$submission ||
                     $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     if ($status->submissionsenabled) {
@@ -590,19 +594,10 @@ class renderer extends \plugin_renderer_base {
                         $remaining = get_string('duedatereached', 'assign');
                     }
                 } else {
-                    if (isset($submission->id)) {
-                        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-                    }
-
-                    if ($duedate && ($submission->timemodified > $duedate)) {
+                    if ($submission->timemodified > $duedate) {
                         $remaining = get_string('submittedlate',
                                               'assign',
                                               format_time($submission->timemodified - $duedate));
-                        $classname = 'latesubmission';
-                    } else if ($timelimit && $submissionattempt && ($submission->timemodified - $submissionattempt->timecreated > $timelimit)) {
-                        $remaining = get_string('submittedlate',
-                            'assign',
-                            format_time($submission->timemodified - $submissionattempt->timecreated));
                         $classname = 'latesubmission';
                     } else {
                         $remaining = get_string('submittedearly',
@@ -612,7 +607,24 @@ class renderer extends \plugin_renderer_base {
                     }
                 }
             } else {
-                $remaining = get_string('paramtimeremaining', 'assign', format_time($duedate - $time));
+                if ($timelimit && isset($submissionattempt->id)) {
+                    $assign = new \assign($status->context, null, null);
+                    $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
+                    $remaining = $navbc->content;
+                    if (($submission->timemodified - $submissionattempt->timecreated > $timelimit) && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                        $remaining = get_string('submittedlate',
+                            'assign',
+                            format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
+                        $classname = 'latesubmission';
+                    }
+                } else if ($submission && $submission->timemodified < $duedate && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                    $remaining = get_string('submittedearly',
+                        'assign',
+                        format_time($submission->timemodified - $duedate));
+                    $classname = 'earlysubmission';
+                } else {
+                    $remaining = get_string('paramtimeremaining', 'assign', format_time($duedate - $time));
+                }
             }
             $o .= $this->output->container($remaining, $classname);
         }
