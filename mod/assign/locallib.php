@@ -4885,6 +4885,7 @@ class assign {
      * Get the time limit panel object for this submission attempt.
      *
      * @param renderer $output the assign renderer to use to output things.
+     * @param stdClass $submissionattempt assign submission attempt.
      * @return block_contents the requested object.
      */
     public function get_timelimit_panel(renderer $output, $submissionattempt) {
@@ -9815,11 +9816,20 @@ class assign_portfolio_caller extends portfolio_module_caller_base {
  * @since      Moodle 2.0
  */
 class assign_attempt_timelimit_panel {
+    /** @var stdClass assign submission attempt.*/
     protected $submissionattempt;
+    /** @var object assign object.*/
     protected $assign;
 
-    public function __construct(stdClass $submission, $assign) {
-        $this->submission = $submission;
+    /**
+     * Constructor.
+     *
+     * @param stdClass $submissionattempt assign submission attempt.
+     * @param object $assign assign object.
+     */
+
+    public function __construct(stdClass $submissionattempt, $assign) {
+        $this->submission = $submissionattempt;
         $this->assign = $assign;
     }
 

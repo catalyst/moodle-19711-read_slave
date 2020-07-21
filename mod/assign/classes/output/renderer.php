@@ -1597,7 +1597,6 @@ class renderer extends \plugin_renderer_base {
      * @param string $module name of module
      * @param object $activity instance of activity
      * @param int $cmid course module id
-     * @param bool $filter filter resulting html text
      * @return string
      */
     public function format_activity_text($assign, $cmid) {
@@ -1629,6 +1628,9 @@ class renderer extends \plugin_renderer_base {
 
     /**
      * Return the HTML of the assign timer.
+     * @param \stdClass $submissionattempt submission attempt.
+     * @param object $assign assign object.
+     * @param int $timenow the time to consider as 'now'.
      * @return string HTML content.
      */
     public function countdown_timer(\stdClass $submissionattempt, $assign, $timenow) {
@@ -1661,6 +1663,7 @@ class renderer extends \plugin_renderer_base {
      * Compute what should be displayed to the user for time remaining in this attempt.
      *
      * @param object $attempt the data from the relevant assign attempt.
+     * @param object $assign assign object.
      * @param int $timenow the time to consider as 'now'.
      * @return int|false the number of seconds remaining for this attempt.
      *      False if no limit should be displayed.
@@ -1674,6 +1677,13 @@ class renderer extends \plugin_renderer_base {
         return $timeleft;
     }
 
+    /**
+     * Compute end time for this assign attempt.
+     *
+     * @param object $attempt the data from the relevant assign attempt.
+     * @param object $assign assign object.
+     * @return int the time when assign attempt is due.
+     */
     public function end_time($attempt, $assign) {
         $timedue = $attempt->timecreated + $assign->timelimit;
         if ($assign->duedate) {
@@ -1684,6 +1694,14 @@ class renderer extends \plugin_renderer_base {
         return $timedue;
     }
 
+    /**
+     * Compute time left for this assign attempt.
+     *
+     * @param object $attempt the data from the relevant assign attempt.
+     * @param object $assign assign object.
+     * @param int $timenow the time to consider as 'now'.
+     * @return int the time left for this assign attempt.
+     */
     public function time_left_display($attempt, $assign, $timenow) {
         $endtime = $this->end_time($attempt, $assign);
         if ($timenow > $endtime) {
