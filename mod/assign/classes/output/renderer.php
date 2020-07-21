@@ -1594,7 +1594,6 @@ class renderer extends \plugin_renderer_base {
     /**
      * Formats activity intro text
      *
-     * @param string $module name of module
      * @param object $activity instance of activity
      * @param int $cmid course module id
      * @return string

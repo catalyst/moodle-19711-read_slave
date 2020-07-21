@@ -9827,12 +9827,16 @@ class assign_attempt_timelimit_panel {
      * @param stdClass $submissionattempt assign submission attempt.
      * @param object $assign assign object.
      */
-
     public function __construct(stdClass $submissionattempt, $assign) {
         $this->submission = $submissionattempt;
         $this->assign = $assign;
     }
 
+    /**
+     * Render timer.
+     *
+     * @param renderer $output the assign renderer.
+     */
     public function render_end_bits(renderer $output) {
         return $output->countdown_timer($this->submission, $this->assign, time());
     }
