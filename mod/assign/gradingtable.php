@@ -1067,6 +1067,8 @@ class assign_grading_table extends table_sql implements renderable {
      * @return string
      */
     public function col_status(stdClass $row) {
+        global $DB;
+
         $o = '';
 
         $instance = $this->assignment->get_instance($row->userid);
@@ -1105,6 +1107,10 @@ class assign_grading_table extends table_sql implements renderable {
 
         if ($this->assignment->is_any_submission_plugin_enabled()) {
 
+            $submissionattempt = false;
+            if ($row->submissionid) {
+                $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $row->submissionid));
+            }
             $o .= $this->output->container(get_string('submissionstatus_' . $displaystatus, 'assign'),
                                            array('class' => 'submissionstatus' .$displaystatus));
             if ($due && $timesubmitted > $due && $status != ASSIGN_SUBMISSION_STATUS_NEW) {
@@ -1112,6 +1118,13 @@ class assign_grading_table extends table_sql implements renderable {
                 $latemessage = get_string('submittedlateshort',
                                           'assign',
                                           $usertime);
+                $o .= $this->output->container($latemessage, 'latesubmission');
+            } elseif ($instance->timelimit && $submissionattempt && ($timesubmitted - $submissionattempt->timecreated > $instance->timelimit)
+                && $status != ASSIGN_SUBMISSION_STATUS_NEW) {
+                $usertime = format_time($timesubmitted - $submissionattempt->timecreated - $instance->timelimit);
+                $latemessage = get_string('submittedlateshort',
+                    'assign',
+                    $usertime);
                 $o .= $this->output->container($latemessage, 'latesubmission');
             }
             if ($row->locked) {

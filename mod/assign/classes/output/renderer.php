@@ -575,7 +575,7 @@ class renderer extends \plugin_renderer_base {
         if (isset($submission->id)) {
             $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
         }
-        if ($duedate > 0) {
+        if ($duedate > 0 || $timelimit) {
 
             if ($status->extensionduedate) {
                 // Extension date.
@@ -584,7 +584,7 @@ class renderer extends \plugin_renderer_base {
 
             // Time remaining.
             $classname = 'timeremaining';
-            if ($duedate - $time <= 0) {
+            if ($duedate > 0 && ($duedate - $time) <= 0) {
                 if (!$submission ||
                     $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     if ($status->submissionsenabled) {
@@ -618,7 +618,7 @@ class renderer extends \plugin_renderer_base {
                             format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
                         $classname = 'latesubmission';
                     }
-                } else if ($submission && $submission->timemodified < $duedate
+                } else if ($duedate && $submission && $submission->timemodified < $duedate
                     && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     $remaining = get_string('submittedearly',
                         'assign',
@@ -909,11 +909,13 @@ class renderer extends \plugin_renderer_base {
             $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
         }
 
-        if ($duedate > 0) {
-            // Due date.
-            $cell1content = get_string('duedate', 'assign');
-            $cell2content = userdate($duedate);
-            $this->add_table_row_tuple($t, $cell1content, $cell2content);
+        if ($duedate > 0 || $timelimit) {
+            if ($duedate > 0) {
+                // Due date.
+                $cell1content = get_string('duedate', 'assign');
+                $cell2content = userdate($duedate);
+                $this->add_table_row_tuple($t, $cell1content, $cell2content);
+            }
 
             if ($status->view == assign_submission_status::GRADER_VIEW) {
                 if ($status->cutoffdate) {
@@ -934,7 +936,7 @@ class renderer extends \plugin_renderer_base {
             // Time remaining.
             $cell1content = get_string('timeremaining', 'assign');
             $cell2attributes = [];
-            if ($duedate - $time <= 0) {
+            if ($duedate > 0 && ($duedate - $time) <= 0) {
                 if (!$submission ||
                     $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     if ($status->submissionsenabled) {
@@ -968,7 +970,7 @@ class renderer extends \plugin_renderer_base {
                             format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
                         $cell2attributes = array('class' => 'latesubmission');
                     }
-                } else if ($submission && $submission->timemodified < $duedate
+                } else if ($duedate && $submission && $submission->timemodified < $duedate
                     && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     $cell2content = get_string('submittedearly',
                         'assign',
