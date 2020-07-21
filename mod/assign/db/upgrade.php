@@ -87,7 +87,8 @@ function xmldb_assign_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('submissionattachments', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'activityformat');
+        $field = new xmldb_field('submissionattachments', XMLDB_TYPE_INTEGER, '2',
+            null, XMLDB_NOTNULL, null, '0', 'activityformat');
 
         // Conditionally launch add field submissionattachments.
         if (!$dbman->field_exists($table, $field)) {

@@ -1570,7 +1570,8 @@ class assign {
             $text = $formdata->activityeditor['text'];
             if (isset($formdata->activityeditor['itemid'])) {
                 $text = file_save_draft_area_files($formdata->activityeditor['itemid'], $this->get_context()->id,
-                    'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA, 0, array('subdirs' => true), $formdata->activityeditor['text']);
+                    'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA,
+                    0, array('subdirs' => true), $formdata->activityeditor['text']);
             }
         }
         return $text;

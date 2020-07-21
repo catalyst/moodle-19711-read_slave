@@ -611,13 +611,15 @@ class renderer extends \plugin_renderer_base {
                     $assign = new \assign($status->context, null, null);
                     $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                     $remaining = $navbc->content;
-                    if (($submission->timemodified - $submissionattempt->timecreated > $timelimit) && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                    if (($submission->timemodified - $submissionattempt->timecreated > $timelimit)
+                        && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                         $remaining = get_string('submittedlate',
                             'assign',
                             format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
                         $classname = 'latesubmission';
                     }
-                } else if ($submission && $submission->timemodified < $duedate && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                } else if ($submission && $submission->timemodified < $duedate
+                    && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     $remaining = get_string('submittedearly',
                         'assign',
                         format_time($submission->timemodified - $duedate));
@@ -688,7 +690,7 @@ class renderer extends \plugin_renderer_base {
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
 
         // Links.
-        if ($status->view == assign_submission_status ::STUDENT_VIEW) {
+        if ($status->view == assign_submission_status::STUDENT_VIEW) {
             if ($status->canedit) {
                 if (!$submission || $submission->status == ASSIGN_SUBMISSION_STATUS_NEW) {
                     $o .= $this->output->box_start('generalbox submissionaction');
@@ -715,7 +717,7 @@ class renderer extends \plugin_renderer_base {
                     $o .= $this->output->box_start('generalbox submissionaction');
                     $urlparams = array('id' => $status->coursemoduleid,
                         'action' => 'editprevioussubmission',
-                        'sesskey'=>sesskey());
+                        'sesskey' => sesskey());
                     $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
                         get_string('addnewattemptfromprevious', 'assign'), 'get');
                     $o .= $this->output->box_start('boxaligncenter submithelp');
@@ -746,7 +748,7 @@ class renderer extends \plugin_renderer_base {
             }
 
             if ($status->cansubmit) {
-                $urlparams = array('id' => $status->coursemoduleid, 'action'=>'submit');
+                $urlparams = array('id' => $status->coursemoduleid, 'action' => 'submit');
                 $o .= $this->output->box_start('generalbox submissionaction');
                 $o .= $this->output->single_button(new \moodle_url('/mod/assign/view.php', $urlparams),
                     get_string('submitassignment', 'assign'), 'get');
@@ -959,13 +961,15 @@ class renderer extends \plugin_renderer_base {
                     $assign = new \assign($status->context, null, null);
                     $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                     $cell2content = $navbc->content;
-                    if (($submission->timemodified - $submissionattempt->timecreated > $timelimit) && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                    if (($submission->timemodified - $submissionattempt->timecreated > $timelimit)
+                        && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                         $cell2content = get_string('submittedlate',
                             'assign',
                             format_time($submission->timemodified - $submissionattempt->timecreated - $timelimit));
                         $cell2attributes = array('class' => 'latesubmission');
                     }
-                } else if ($submission && $submission->timemodified < $duedate && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                } else if ($submission && $submission->timemodified < $duedate
+                    && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                     $cell2content = get_string('submittedearly',
                         'assign',
                         format_time($submission->timemodified - $duedate));
