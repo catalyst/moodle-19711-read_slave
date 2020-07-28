@@ -645,3 +645,5 @@ $string['notsubmittedyet'] = 'Not submitted yet';
 $string['submissionsnotgraded'] = 'Submissions not graded: {$a}';
 $string['timelimitpassed'] = 'Time limit has been passed';
 $string['assigntimeleft'] = 'Time left';
+$string['enabletimelimit'] = 'Enable timed assignments';
+$string['enabletimelimit_help'] = 'If enabled, you can set a time limit on assignment settings page.';

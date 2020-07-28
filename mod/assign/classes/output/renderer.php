@@ -479,6 +479,7 @@ class renderer extends \plugin_renderer_base {
         $o .= $this->output->container_start('submissionstatustable');
         $o .= $this->output->heading(get_string('submission', 'assign'), 3);
         $time = time();
+        $timelimitenabled = get_config('assign', 'enabletimelimit');
 
         if ($status->teamsubmissionenabled) {
             $group = $status->submissiongroup;
@@ -572,10 +573,10 @@ class renderer extends \plugin_renderer_base {
         $duedate = $status->duedate;
         $timelimit = $status->timelimit;
         $submissionattempt = new \stdClass();
-        if (isset($submission->id)) {
+        if (isset($submission->id) && $timelimitenabled) {
             $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
         }
-        if ($duedate > 0 || $timelimit) {
+        if ($duedate > 0 || ($timelimit && $timelimitenabled)) {
 
             if ($status->extensionduedate) {
                 // Extension date.
@@ -607,7 +608,7 @@ class renderer extends \plugin_renderer_base {
                     }
                 }
             } else {
-                if ($timelimit && isset($submissionattempt->id)) {
+                if ($timelimitenabled && $timelimit && isset($submissionattempt->id)) {
                     $assign = new \assign($status->context, null, null);
                     $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                     $remaining = $navbc->content;
@@ -688,6 +689,7 @@ class renderer extends \plugin_renderer_base {
 
         $time = time();
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
+        $timelimitenabled = get_config('assign', 'enabletimelimit');
 
         // Links.
         if ($status->view == assign_submission_status::STUDENT_VIEW) {
@@ -696,7 +698,7 @@ class renderer extends \plugin_renderer_base {
                     $o .= $this->output->box_start('generalbox submissionaction');
 
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
-                    if ($status->timelimit > 0) {
+                    if ($status->timelimit > 0 && $timelimitenabled) {
                         $confirmation = new \confirm_action(
                             get_string('confirmstart', 'assign', format_time($status->timelimit)),
                             null, get_string('addsubmission', 'assign'));
@@ -905,11 +907,11 @@ class renderer extends \plugin_renderer_base {
         $cutoffdate = $status->cutoffdate;
         $timelimit = $status->timelimit;
         $submissionattempt = new \stdClass();
-        if (isset($submission->id)) {
+        if (isset($submission->id) && $timelimitenabled) {
             $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
         }
 
-        if ($duedate > 0 || $timelimit) {
+        if ($duedate > 0 || ($timelimitenabled && $timelimit)) {
             if ($duedate > 0) {
                 // Due date.
                 $cell1content = get_string('duedate', 'assign');
@@ -959,7 +961,7 @@ class renderer extends \plugin_renderer_base {
                     }
                 }
             } else {
-                if ($timelimit && isset($submissionattempt->id)) {
+                if ($timelimitenabled && $timelimit && isset($submissionattempt->id)) {
                     $assign = new \assign($status->context, null, null);
                     $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                     $cell2content = $navbc->content;
@@ -988,7 +990,7 @@ class renderer extends \plugin_renderer_base {
             $cell1content = get_string('timeremaining', 'assign');
             $cell2attributes = [];
             $cell2content = format_time($duedate - $time);
-            if ($timelimit && $submissionattempt->timecreated) {
+            if ($timelimitenabled && $timelimit && $submissionattempt->timecreated) {
                 $assign = new \assign($status->context, null, null);
                 $navbc = $assign->get_timelimit_panel($this, $submissionattempt);
                 $cell2content = $navbc->content;
@@ -998,7 +1000,7 @@ class renderer extends \plugin_renderer_base {
         }
 
         // Add time limit info if there is one.
-        if ($status->timelimit > 0) {
+        if ($timelimitenabled && $status->timelimit > 0) {
             $cell1content = get_string('timelimit', 'assign');
             $cell2content = format_time($status->timelimit);
             $this->add_table_row_tuple($t, $cell1content, $cell2content, [], []);

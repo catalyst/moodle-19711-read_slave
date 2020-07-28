@@ -107,10 +107,13 @@ class mod_assign_mod_form extends moodleform_mod {
         $mform->addElement('date_time_selector', 'gradingduedate', $name, array('optional' => true));
         $mform->addHelpButton('gradingduedate', 'gradingduedate', 'assign');
 
+        $timelimitenabled = get_config('assign', 'enabletimelimit');
         // Time limit.
-        $mform->addElement('duration', 'timelimit', get_string('timelimit', 'assign'),
-            array('optional' => true));
-        $mform->addHelpButton('timelimit', 'timelimit', 'assign');
+        if ($timelimitenabled) {
+            $mform->addElement('duration', 'timelimit', get_string('timelimit', 'assign'),
+                array('optional' => true));
+            $mform->addHelpButton('timelimit', 'timelimit', 'assign');
+        }
 
         $name = get_string('alwaysshowdescription', 'assign');
         $mform->addElement('checkbox', 'alwaysshowdescription', $name);

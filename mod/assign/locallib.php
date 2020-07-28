@@ -4808,6 +4808,7 @@ class assign {
         // Need submit permission to submit an assignment.
         $userid = optional_param('userid', $USER->id, PARAM_INT);
         $user = $DB->get_record('user', array('id'=>$userid), '*', MUST_EXIST);
+        $timelimitenabled = get_config('assign', 'enabletimelimit');
 
         // This variation on the url will link direct to this student.
         // The benefit is the url will be the same every time for this student, so Atto autosave drafts can match up.
@@ -4854,7 +4855,7 @@ class assign {
         }
 
         $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
-        if ($submissionattempt && $this->get_instance()->timelimit) {
+        if ($timelimitenabled && $submissionattempt && $this->get_instance()->timelimit) {
             $output = $this->get_renderer();
             $navbc = $this->get_timelimit_panel($output, $submissionattempt);
             $regions = $PAGE->blocks->get_regions();

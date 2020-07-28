@@ -1072,6 +1072,7 @@ class assign_grading_table extends table_sql implements renderable {
         $o = '';
 
         $instance = $this->assignment->get_instance($row->userid);
+        $timelimitenabled = get_config('assign', 'enabletimelimit');
 
         $due = $instance->duedate;
         if ($row->extensionduedate) {
@@ -1119,7 +1120,7 @@ class assign_grading_table extends table_sql implements renderable {
                                           'assign',
                                           $usertime);
                 $o .= $this->output->container($latemessage, 'latesubmission');
-            } elseif ($instance->timelimit && $submissionattempt && ($timesubmitted - $submissionattempt->timecreated > $instance->timelimit)
+            } elseif ($timelimitenabled && $instance->timelimit && $submissionattempt && ($timesubmitted - $submissionattempt->timecreated > $instance->timelimit)
                 && $status != ASSIGN_SUBMISSION_STATUS_NEW) {
                 $usertime = format_time($timesubmitted - $submissionattempt->timecreated - $instance->timelimit);
                 $latemessage = get_string('submittedlateshort',
