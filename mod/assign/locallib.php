@@ -4860,6 +4860,7 @@ class assign {
             $navbc = $this->get_timelimit_panel($output, $submissionattempt);
             $regions = $PAGE->blocks->get_regions();
             $PAGE->blocks->add_fake_block($navbc, reset($regions));
+            $notices[] = get_string('caneditsubmission', 'assign');
         }
         $o .= $this->get_renderer()->render(new assign_header($this->get_instance(),
                                                       $this->get_context(),

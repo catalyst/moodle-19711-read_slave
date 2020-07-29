@@ -690,7 +690,9 @@ class renderer extends \plugin_renderer_base {
         $time = time();
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
         $timelimitenabled = get_config('assign', 'enabletimelimit');
-
+        if ($timelimitenabled) {
+            $o .= $this->output->notification(get_string('caneditsubmission', 'assign'));
+        }
         // Links.
         if ($status->view == assign_submission_status::STUDENT_VIEW) {
             if ($status->canedit) {
@@ -701,10 +703,10 @@ class renderer extends \plugin_renderer_base {
                     if ($status->timelimit > 0 && $timelimitenabled) {
                         $confirmation = new \confirm_action(
                             get_string('confirmstart', 'assign', format_time($status->timelimit)),
-                            null, get_string('addsubmission', 'assign'));
+                            null, get_string('beginassignment', 'assign'));
                             $o .= $this->output->action_link(
                                 new \moodle_url('/mod/assign/view.php', $urlparams),
-                                get_string('addsubmission', 'assign'),
+                                get_string('beginassignment', 'assign'),
                                 $confirmation,
                                 array('class' => 'btn btn-secondary'));
                     } else {
