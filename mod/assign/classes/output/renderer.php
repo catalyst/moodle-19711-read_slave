@@ -690,7 +690,7 @@ class renderer extends \plugin_renderer_base {
         $time = time();
         $submission = $status->teamsubmission ? $status->teamsubmission : $status->submission;
         $timelimitenabled = get_config('assign', 'enabletimelimit');
-        if ($timelimitenabled) {
+        if ($timelimitenabled && $status->timelimit) {
             $o .= $this->output->notification(get_string('caneditsubmission', 'assign'));
         }
         // Links.
