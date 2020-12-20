@@ -551,6 +551,7 @@ $string['sitepolicynotagreed'] = 'Site policy not agreed: <a href="{$a}">Click h
 $string['scheduledbackupsdisabled'] = 'Scheduled backups have been disabled by the server admin';
 $string['socksnotsupported'] = 'SOCKS5 proxy is not supported in PHP4';
 $string['spellcheckernotconf'] = 'Spellchecker not configured';
+$string['sqlregexnotsupported'] = 'Database driver does not support regular expressions';
 $string['sslonlyaccess'] = 'For security reasons only https connections are allowed, sorry.';
 $string['statscatchupmode'] = 'Statistics is currently in catchup mode. So far {$a->daysdone} day(s) have been processed and {$a->dayspending} are pending. Check back soon!';
 $string['statsdisable'] = 'Statistics are not enabled.';
