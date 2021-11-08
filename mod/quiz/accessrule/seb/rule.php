@@ -298,12 +298,17 @@ class quizaccess_seb extends quiz_access_rule_base {
         $PAGE->set_pagelayout('secure');
         $this->prevent_display_blocks();
 
-        if ($this->accessmanager->should_validate_basic_header() && !$this->accessmanager->validate_basic_header()) {
+        // Access has previously been validated for this session and quiz.
+        if ($this->accessmanager->validate_session_access()) {
+            return false;
+        }
+
+        if (!$this->accessmanager->validate_basic_header()) {
             access_prevented::create_strict($this->accessmanager, $this->get_reason_text('not_seb'))->trigger();
             return $this->get_require_seb_error_message();
         }
 
-        if ($this->accessmanager->should_validate_config_key() && !$this->accessmanager->validate_config_key()) {
+        if (!$this->accessmanager->validate_config_key()) {
             if ($this->should_redirect_to_seb_config_link()) {
                 $this->redirect_to_seb_config_link();
             }
@@ -312,10 +317,13 @@ class quizaccess_seb extends quiz_access_rule_base {
             return $this->get_invalid_key_error_message();
         }
 
-        if ($this->accessmanager->should_validate_browser_exam_key() && !$this->accessmanager->validate_browser_exam_keys()) {
+        if (!$this->accessmanager->validate_browser_exam_key()) {
             access_prevented::create_strict($this->accessmanager, $this->get_reason_text('invalid_browser_key'))->trigger();
             return $this->get_invalid_key_error_message();
         }
+
+        // Set the state of the access for this Moodle session.
+        $this->accessmanager->set_session_access(true);
 
         return false;
     }
@@ -431,6 +439,8 @@ class quizaccess_seb extends quiz_access_rule_base {
      *         (may be '' if no message is appropriate).
      */
     public function description() : array {
+        global $PAGE;
+
         $messages = [get_string('sebrequired', 'quizaccess_seb')];
 
         // Display download SEB config link for those who can bypass using SEB.
@@ -441,6 +451,8 @@ class quizaccess_seb extends quiz_access_rule_base {
         // Those with higher level access will be able to see the button if they've made an attempt.
         if (!$this->prevent_access()) {
             $messages[] = $this->display_buttons($this->get_quit_button());
+        } else {
+            $PAGE->requires->js_call_amd('quizaccess_seb/validate_quiz_access', 'init');
         }
 
         return $messages;
@@ -457,6 +469,13 @@ class quizaccess_seb extends quiz_access_rule_base {
         $page->set_popup_notification_allowed(false); // Prevent message notifications.
         $page->set_heading($page->title);
         $page->set_pagelayout('secure');
+    }
+
+    /**
+     * This is called when the current attempt at the quiz is finished.
+     */
+    public function current_attempt_finished() {
+        $this->accessmanager->clear_session_access();
     }
 
     /**

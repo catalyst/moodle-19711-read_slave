@@ -56,8 +56,7 @@ class access_manager {
     /** @var context_module $context Context of this quiz activity. */
     private $context;
 
-    /** @var string|null $validconfigkey Expected valid SEB config key.
-     */
+    /** @var string|null $validconfigkey Expected valid SEB config key. */
     private $validconfigkey = null;
 
     /**
@@ -73,31 +72,51 @@ class access_manager {
     }
 
     /**
-     * Check if the browser exam key hash in header matches one of the listed browser exam keys from quiz settings.
+     * Validate browser exam key. It will validate a provided browser exam key if provided, then will fall back to checking
+     * the header.
      *
-     * @return bool True if header key matches one of the saved keys.
+     * @param string|null $browserexamkey Optional. Can validate a provided key, or will fall back to checking header.
+     * @param string|null $url Optionally provide URL of page to validate.
+     * @return bool
      */
-    public function validate_browser_exam_keys() : bool {
-        // If browser exam keys are entered in settings, check they match the header.
-        $browserexamkeys = $this->quizsettings->get('allowedbrowserexamkeys');
-        if (empty($browserexamkeys)) {
+    public function validate_browser_exam_key(?string $browserexamkey = null, ?string $url = null): bool {
+        if (!$this->should_validate_browser_exam_key()) {
+            // Browser exam key should not be checked, so do not prevent access.
+            return true;
+        }
+
+        if (!$this->is_allowed_browser_examkeys_configured()) {
             return true; // If no browser exam keys, no check required.
         }
 
+        if (empty($browserexamkey)) {
+            $browserexamkey = $this->get_received_browser_exam_key();
+        }
+
+        $validbrowserexamkeys = $this->quizsettings->get('allowedbrowserexamkeys');
+
         // If the Browser Exam Key header isn't present, prevent access.
-        if (is_null($this->get_received_browser_exam_key())) {
+        if (is_null($browserexamkey)) {
             return false;
         }
 
-        return $this->check_browser_exam_keys($browserexamkeys, $this->get_received_browser_exam_key());
+        return $this->check_browser_exam_keys($validbrowserexamkeys, $browserexamkey, $url);
     }
 
     /**
-     * Check if the config key hash in header matches quiz settings.
+     * Validate a config key. It will check a provided config key if provided then will fall back to checking config
+     * key in header.
      *
-     * @return bool True if header key matches saved key.
+     * @param string|null $configkey Optional. Can validate a provided key, or will fall back to checking header.
+     * @param string|null $url URL of page to validate.
+     * @return bool
      */
-    public function validate_config_key() : bool {
+    public function validate_config_key(?string $configkey = null, ?string $url = null): bool {
+        if (!$this->should_validate_config_key()) {
+            // Config key should not be checked, so do not prevent access.
+            return true;
+        }
+
         // If using client config, or with no requirement, then no check required.
         $requiredtype = $this->get_seb_use_type();
         if ($requiredtype == settings_provider::USE_SEB_NO
@@ -105,16 +124,20 @@ class access_manager {
             return true;
         }
 
+        if (empty($configkey)) {
+            $configkey = $this->get_received_config_key();
+        }
+
         if (empty($this->validconfigkey)) {
             return false; // No config key has been saved.
         }
 
-        // If the Config Key header isn't present, prevent access.
-        if (is_null($this->get_received_config_key())) {
+        if (is_null($configkey)) {
             return false;
         }
 
-        return $this->check_key($this->validconfigkey, $this->get_received_config_key());
+        // Check if there is a valid config key supplied in the header.
+        return $this->check_key($this->validconfigkey, $configkey, $url);
     }
 
     /**
@@ -138,6 +161,11 @@ class access_manager {
      * @return bool
      */
     public function validate_basic_header() : bool {
+        if (!$this->should_validate_basic_header()) {
+            // Config key should not be checked, so do not prevent access.
+            return true;
+        }
+
         if ($this->get_seb_use_type() == settings_provider::USE_SEB_CLIENT_CONFIG) {
             return $this->is_using_seb();
         }
@@ -198,15 +226,25 @@ class access_manager {
     }
 
     /**
+     * Check that at least one browser exam key exists in the quiz settings.
+     *
+     * @return bool True if one or more keys are set in quiz settings.
+     */
+    private function is_allowed_browser_examkeys_configured(): bool {
+        return !empty($this->quizsettings->get('allowedbrowserexamkeys'));
+    }
+
+    /**
      * Check the hash from the request header against the permitted browser exam keys.
      *
      * @param array $keys Allowed browser exam keys.
      * @param string $header The value of the X-SafeExamBrowser-RequestHash to check.
+     * @param string|null $url URL of page to validate.
      * @return bool True if the hash matches.
      */
-    private function check_browser_exam_keys(array $keys, string $header) : bool {
+    private function check_browser_exam_keys(array $keys, string $header, ?string $url = null) : bool {
         foreach ($keys as $key) {
-            if ($this->check_key($key, $header)) {
+            if ($this->check_key($key, $header, $url)) {
                 return true;
             }
         }
@@ -216,12 +254,16 @@ class access_manager {
     /**
      * Check the hash from the request header against a single permitted key.
      *
-     * @param string $key an allowed key.
-     * @param string $header the value of the X-SafeExamBrowser-RequestHash or X-SafeExamBrowser-ConfigKeyHash to check.
-     * @return bool true if the hash matches.
+     * @param string $validkey An allowed key.
+     * @param string $key The value of X-SafeExamBrowser-RequestHash, X-SafeExamBrowser-ConfigKeyHash or a provided key to check.
+     * @param string|null $url URL of page to validate.
+     * @return bool True if the hash matches.
      */
-    private function check_key($key, $header) : bool {
-        return hash('sha256', $this->get_this_page_url() . $key) === $header;
+    private function check_key(string $validkey, string $key, ?string $url = null) : bool {
+        if (empty($url)) {
+            $url = $this->get_this_page_url();
+        }
+        return hash('sha256', $url . $validkey) === $key;
     }
 
     /**
@@ -296,5 +338,36 @@ class access_manager {
             settings_provider::USE_SEB_UPLOAD_CONFIG,
             settings_provider::USE_SEB_CLIENT_CONFIG,
         ]);
+    }
+
+    /**
+     * Set session access for quiz.
+     *
+     * @param bool $accessallowed
+     */
+    public function set_session_access(bool $accessallowed): void {
+        global $SESSION;
+        if (!isset($SESSION->quizaccess_seb_access)) {
+            $SESSION->quizaccess_seb_access = [];
+        }
+        $SESSION->quizaccess_seb_access[$this->quiz->get_cmid()] = $accessallowed;
+    }
+
+    /**
+     * Check session access for quiz if already set.
+     *
+     * @return bool
+     */
+    public function validate_session_access(): bool {
+        global $SESSION;
+        return !empty($SESSION->quizaccess_seb_access[$this->quiz->get_cmid()]);
+    }
+
+    /**
+     * Unset the global session access variable for this quiz.
+     */
+    public function clear_session_access(): void {
+        global $SESSION;
+        unset($SESSION->quizaccess_seb_access[$this->quiz->get_cmid()]);
     }
 }
