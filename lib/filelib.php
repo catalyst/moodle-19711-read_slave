@@ -1323,6 +1323,19 @@ function file_rewrite_urls_to_pluginfile($text, $draftitemid, $forcehttps = fals
 
     $usercontext = context_user::instance($USER->id);
 
+    // Allow plugins to rewrite file urls first.
+    $pluginswithfunction = get_plugins_with_function('file_rewrite_urls', 'lib.php');
+    foreach ($pluginswithfunction as $plugins) {
+        foreach ($plugins as $function) {
+            try {
+                $text = $function($text, $usercontext->id);
+            } catch (Throwable $e) {
+                // Failed to rewrite, but will not stop.
+                debugging("Exception calling '$function': $e", DEBUG_DEVELOPER, $e->getTrace());
+            }
+        }
+    }
+
     $wwwroot = $CFG->wwwroot;
     if ($forcehttps) {
         $wwwroot = str_replace('http://', 'https://', $wwwroot);
