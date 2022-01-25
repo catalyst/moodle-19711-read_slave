@@ -27,14 +27,31 @@
  * define('TEST_AUTH_LDAP_DOMAIN', 'dc=example,dc=local');
  *
  * @package    auth_ldap
- * @category   phpunit
  * @copyright  2013 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace auth_ldap;
+
+use auth_plugin_ldap;
+use context_user, context_system;
+use auth_ldap\task\sync_task, auth_ldap\task\asynchronous_sync_task;
+
 defined('MOODLE_INTERNAL') || die();
 
-class auth_ldap_plugin_testcase extends advanced_testcase {
+global $CFG;
+
+require_once($CFG->dirroot.'/auth/ldap/auth.php');
+require_once($CFG->libdir.'/ldaplib.php');
+
+/**
+ * LDAP authentication plugin tests.
+ *
+ * @package    auth_ldap
+ * @copyright  2013 Petr Skoda {@link http://skodak.org}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class auth_ldap_test extends \advanced_testcase {
 
     /**
      * Data provider for auth_ldap tests
@@ -73,9 +90,6 @@ class auth_ldap_plugin_testcase extends advanced_testcase {
         }
 
         $this->resetAfterTest();
-
-        require_once($CFG->dirroot.'/auth/ldap/auth.php');
-        require_once($CFG->libdir.'/ldaplib.php');
 
         if (!defined('TEST_AUTH_LDAP_HOST_URL') or !defined('TEST_AUTH_LDAP_BIND_DN') or !defined('TEST_AUTH_LDAP_BIND_PW') or !defined('TEST_AUTH_LDAP_DOMAIN')) {
             $this->markTestSkipped('External LDAP test server not configured.');
@@ -337,6 +351,32 @@ class auth_ldap_plugin_testcase extends advanced_testcase {
         $this->assertEquals(2, $DB->count_records('role_assignments'));
         $this->assertEquals(2, $DB->count_records('role_assignments', array('roleid'=>$creatorrole->id)));
 
+        set_config('field_updatelocal_email', 'onlogin', 'auth_ldap');
+        set_config('sync_updateuserchunk', 1, 'auth_ldap');
+
+        /** @var auth_plugin_ldap $auth */
+        $auth = get_auth_plugin('ldap');
+
+        $auth->_cnt = 0;
+        ob_start();
+        $auth->sync_users_update_callback(function ($users, $updatekeys) use ($auth) {
+            $auth->_cnt++;
+        });
+        ob_end_clean();
+        $this->assertGreaterThan(1, $auth->_cnt);
+
+        ob_start();
+        cron_setup_user();
+        $cron = new sync_task();
+        $cron->execute();
+
+        $this->runAdhocTasks('\auth_ldap\task\asynchronous_sync_task');
+        $output = ob_get_contents();
+        ob_end_clean();
+        $this->assertMatchesRegularExpression(
+            sprintf('/%s.*%s/s', sync_task::MTRACE_MSG, asynchronous_sync_task::MTRACE_MSG),
+            $output
+        );
 
         $this->recursive_delete($connection, TEST_AUTH_LDAP_DOMAIN, 'dc=moodletest');
         ldap_close($connection);
@@ -347,8 +387,6 @@ class auth_ldap_plugin_testcase extends advanced_testcase {
      */
     public function test_ldap_user_loggedin_event() {
         global $CFG, $DB, $USER;
-
-        require_once($CFG->dirroot . '/auth/ldap/auth.php');
 
         $this->resetAfterTest();
 
@@ -415,9 +453,6 @@ class auth_ldap_plugin_testcase extends advanced_testcase {
         }
 
         $this->resetAfterTest();
-
-        require_once($CFG->dirroot.'/auth/ldap/auth.php');
-        require_once($CFG->libdir.'/ldaplib.php');
 
         if (!defined('TEST_AUTH_LDAP_HOST_URL') or !defined('TEST_AUTH_LDAP_BIND_DN') or !defined('TEST_AUTH_LDAP_BIND_PW') or !defined('TEST_AUTH_LDAP_DOMAIN')) {
             $this->markTestSkipped('External LDAP test server not configured.');
