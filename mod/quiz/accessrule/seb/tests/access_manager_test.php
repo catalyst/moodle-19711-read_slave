@@ -576,4 +576,45 @@ class quizacces_seb_access_manager_testcase extends advanced_testcase {
 
         $this->assertTrue(empty($SESSION->quizaccess_seb_access[$this->quiz->cmid]));
     }
+
+    /**
+     * Test we can decide if need to redirect to SEB config link.
+     */
+    public function test_should_redirect_to_seb_config_link_without_checking_header() {
+        $this->quiz = $this->create_test_quiz($this->course, settings_provider::USE_SEB_CONFIG_MANUALLY);
+        $accessmanager = $this->get_access_manager();
+
+        set_config('autoreconfigureseb', '0', 'quizaccess_seb');
+        $_SERVER['HTTP_USER_AGENT'] = 'TEST';
+        $this->assertFalse($accessmanager->should_redirect_to_seb_config_link());
+
+        set_config('autoreconfigureseb', '0', 'quizaccess_seb');
+        $_SERVER['HTTP_USER_AGENT'] = 'SEB';
+        $this->assertFalse($accessmanager->should_redirect_to_seb_config_link());
+
+        set_config('autoreconfigureseb', '1', 'quizaccess_seb');
+        $_SERVER['HTTP_USER_AGENT'] = 'TEST';
+        $this->assertFalse($accessmanager->should_redirect_to_seb_config_link());
+
+        set_config('autoreconfigureseb', '1', 'quizaccess_seb');
+        $_SERVER['HTTP_USER_AGENT'] = 'SEB';
+        $this->assertTrue($accessmanager->should_redirect_to_seb_config_link());
+    }
+
+    /**
+     * Test we can decide if need to redirect to SEB config link when also checking for config key header.
+     */
+    public function test_should_redirect_to_seb_config_link_with_checking_header() {
+        $this->quiz = $this->create_test_quiz($this->course, settings_provider::USE_SEB_CONFIG_MANUALLY);
+        $accessmanager = $this->get_access_manager();
+
+        set_config('autoreconfigureseb', '1', 'quizaccess_seb');
+        $_SERVER['HTTP_USER_AGENT'] = 'SEB';
+        $this->assertFalse($accessmanager->should_redirect_to_seb_config_link(true));
+
+        set_config('autoreconfigureseb', '1', 'quizaccess_seb');
+        $_SERVER['HTTP_USER_AGENT'] = 'SEB';
+        $_SERVER['HTTP_X_SAFEEXAMBROWSER_CONFIGKEYHASH'] = hash('sha256', 'configkey');
+        $this->assertTrue($accessmanager->should_redirect_to_seb_config_link(true));
+    }
 }

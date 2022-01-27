@@ -370,4 +370,34 @@ class access_manager {
         global $SESSION;
         unset($SESSION->quizaccess_seb_access[$this->quiz->get_cmid()]);
     }
+
+    /**
+     * Redirect to SEB config link. This will force Safe Exam Browser to be reconfigured.
+     */
+    public function redirect_to_seb_config_link() {
+        global $PAGE;
+
+        $seblink = \quizaccess_seb\link_generator::get_link($this->quiz->get_cmid(), true, is_https());
+        $PAGE->requires->js_amd_inline("document.location.replace('" . $seblink . "')");
+    }
+
+    /**
+     * Check if we need to redirect to SEB config link.
+     * @param bool $checkheaders Flag for whether the config key header should be checked. This should be true when not
+     * using the new SEB JS API.
+     *
+     * @return bool
+     */
+    public function should_redirect_to_seb_config_link(bool $checkheaders = false) : bool {
+        // If $checkheaders is true, we check if there is an existing config key header. If there is none, we assume that
+        // the SEB application is not using header verification so auto redirect should not proceed.
+        $headercheck = true;
+        if ($checkheaders) {
+            $headercheck = !is_null($this->get_received_config_key());
+        }
+
+        return $this->is_using_seb()
+                && get_config('quizaccess_seb', 'autoreconfigureseb')
+                && $headercheck;
+    }
 }
