@@ -12211,6 +12211,13 @@ body.dragging .dragging {
 .collapse-list .collapse-list-item-content .collapse-list-item {
   padding-left: calc(1rem * 3); }
 
+.page-mycourses #region-main {
+  padding: 0; }
+
+.page-mycourses #region-main,
+.page-mycourses .block_myoverview {
+  border: 0; }
+
 .icon {
   font-size: 16px;
   width: 16px;
@@ -13779,20 +13786,42 @@ body:not(.editing) .sitetopic ul.section {
                  */
   padding-left: 2rem; }
 
-.editing .editinprogress {
-  opacity: .7;
-  animation: editinprogress-pulse 2s infinite linear; }
+.editing .course-content .stateready .section .spinner {
+  display: none; }
 
-@keyframes editinprogress-pulse {
+.editing .editinprogress {
+  position: relative; }
+  .editing .editinprogress > * {
+    opacity: .4; }
+  .editing .editinprogress .corelightbox,
+  .editing .editinprogress .lightbox {
+    display: none; }
+  .editing .editinprogress:after {
+    position: absolute;
+    font-family: "FontAwesome";
+    font-size: 20px;
+    color: #6a737b;
+    content: "";
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    height: 30px;
+    left: calc(50% - 15px);
+    top: calc(50% - 15px);
+    animation: editinprogress-rotation 2s infinite linear; }
+  .editing .editinprogress .editinprogress:after {
+    display: none; }
+
+@keyframes editinprogress-rotation {
   0% {
-    background-color: #f8f9fa;
-    filter: grayscale(60%); }
+    opacity: 0;
+    transform: rotate(0deg); }
   50% {
-    background-color: #e9ecef;
-    filter: grayscale(40%); }
+    opacity: 1; }
   100% {
-    background-color: #f8f9fa;
-    filter: grayscale(60%); } }
+    opacity: 0;
+    transform: rotate(359deg); } }
 
 .editing_show + .editing_assign,
 .editing_hide + .editing_assign {
@@ -19592,11 +19621,11 @@ body {
   font-size: 11px;
   line-height: 11px;
   position: absolute;
-  top: 5px;
+  top: 12.5px;
   right: 0; }
 
 .navbar .popover-region-container {
-  top: calc(50px - (1rem / 2)); }
+  top: 50px; }
 
 .content-item-container {
   width: 100%;
@@ -20476,7 +20505,7 @@ div.editor_atto_toolbar button .icon {
   box-shadow: none;
   border-bottom: #dee2e6 1px solid;
   align-items: stretch;
-  height: 50px; }
+  height: 51px; }
   .navbar.fixed-top .navbar-brand .logo {
     max-height: calc(50px - (0.25rem * 2)); }
   .navbar.fixed-top .nav-link {
@@ -20880,7 +20909,8 @@ div.editor_atto_toolbar button .icon {
 
 .moremenu {
   opacity: 0;
-  height: 50px; }
+  height: 50px;
+  /* TODO: MDL-72481: Update this style to also apply to aria-selected. */ }
   .moremenu.observed {
     opacity: 1; }
   .moremenu .nav-link {
@@ -20892,10 +20922,17 @@ div.editor_atto_toolbar button .icon {
     border-left: none;
     border-top: none; }
     .moremenu .nav-link:hover, .moremenu .nav-link:focus {
-      background-color: #e9ecef; }
+      border-color: transparent;
+      background-color: #f8f9fa; }
     .moremenu .nav-link.active {
-      font-weight: bold;
-      border-bottom: solid 3px #0f6cbf; }
+      background-color: #f8f9fa;
+      border-color: transparent;
+      border-bottom-color: #0f6cbf; }
+      .moremenu .nav-link.active:focus, .moremenu .nav-link.active:hover {
+        background-color: #f8f9fa;
+        border-bottom-color: #0f6cbf; }
+    .moremenu .nav-link.focus, .moremenu .nav-link:focus {
+      position: relative; }
     .moremenu .nav-link[data-toggle="tab"] {
       display: inline-flex;
       flex-direction: column;
@@ -20935,20 +20972,54 @@ div.editor_atto_toolbar button .icon {
         background-color: #0f6cbf; }
     .moremenu .dropdownmoremenu > .dropdown-menu .dropdown-menu .dropdown-divider {
       display: none; }
+  .moremenu .dropdown-item[aria-current="true"],
+  .moremenu .dropdown-item.active {
+    background-color: transparent;
+    color: #1d2125; }
+    .moremenu .dropdown-item[aria-current="true"]:focus-within,
+    .moremenu .dropdown-item.active:focus-within {
+      background-color: #0f6cbf;
+      color: #fff; }
+      .moremenu .dropdown-item[aria-current="true"]:focus-within a,
+      .moremenu .dropdown-item.active:focus-within a {
+        color: #fff; }
+    .moremenu .dropdown-item[aria-current="true"]:before,
+    .moremenu .dropdown-item.active:before {
+      content: ""; }
 
 .primary-navigation .navigation {
   height: 50px; }
   .primary-navigation .navigation .nav-link {
     height: 50px;
-    color: #1d2125; }
+    color: #1d2125;
+    border-top: 3px solid transparent; }
+
+@media (max-width: 767.98px) {
+  .primary-navigation {
+    display: none; }
+  .editmode-switch-form .custom-control-label {
+    font-size: 0;
+    color: transparent; } }
+
+.drawer-primary .drawercontent {
+  padding: 0; }
+  .drawer-primary .drawercontent .list-group {
+    border-radius: 0;
+    margin-top: -1px; }
+    .drawer-primary .drawercontent .list-group .list-group-item {
+      border-left: 0;
+      border-right: 0; }
 
 .secondary-navigation {
   border-top: 1px solid #dee2e6;
   border-bottom: 1px solid #dee2e6; }
   .secondary-navigation .navigation {
-    border-color: #dee2e6;
     height: 50px;
-    margin-bottom: 1rem; }
+    background-color: #fff; }
+    .secondary-navigation .navigation .nav-tabs {
+      border: none; }
+      .secondary-navigation .navigation .nav-tabs .nav-link {
+        border-radius: initial; }
 
 body {
   -webkit-font-smoothing: antialiased;

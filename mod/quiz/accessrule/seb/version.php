@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2021052500;
+$plugin->version = 2021052503;
 $plugin->requires = 2021052500;
 $plugin->component = 'quizaccess_seb';
 $plugin->maturity = MATURITY_STABLE;

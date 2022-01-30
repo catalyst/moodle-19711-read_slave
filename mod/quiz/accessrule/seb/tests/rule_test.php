@@ -36,7 +36,7 @@ require_once(__DIR__ . '/test_helper_trait.php');
  * @copyright  2020 Catalyst IT
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quizaccess_seb_rule__testcase extends advanced_testcase {
+class quizaccess_seb_rule_testcase extends advanced_testcase {
     use quizaccess_seb_test_helper_trait;
 
     /**
@@ -49,6 +49,16 @@ class quizaccess_seb_rule__testcase extends advanced_testcase {
         $this->course = $this->getDataGenerator()->create_course();
     }
 
+    /**
+     * Called after every test.
+     */
+    public function tearDown(): void {
+        global $SESSION;
+
+        if (!empty($this->quiz)) {
+            unset($SESSION->quizaccess_seb_access);
+        }
+    }
 
     /**
      * Helper method to get SEB download link for testing.
@@ -564,6 +574,24 @@ class quizaccess_seb_rule__testcase extends advanced_testcase {
         $this->assertFalse($this->make_rule()->prevent_access());
     }
 
+    public function test_access_allowed_if_access_state_stored_in_session() {
+        global $SESSION;
+
+        $this->setAdminUser();
+        $this->quiz = $this->create_test_quiz($this->course, settings_provider::USE_SEB_CLIENT_CONFIG);
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        // Check that access is prevented.
+        $this->check_invalid_basic_header();
+
+        $SESSION->quizaccess_seb_access = [$this->quiz->cmid => true];
+
+        // Check access is now not prevented.
+        $this->assertFalse($this->make_rule()->prevent_access());
+    }
+
     /**
      * A helper method to check invalid browser key.
      *
@@ -736,6 +764,14 @@ class quizaccess_seb_rule__testcase extends advanced_testcase {
         // Set up basic dummy request.
         $_SERVER['HTTP_USER_AGENT'] = 'WRONG_TEST_SITE';
 
+        // Create an event sink, trigger event and retrieve event.
+        $this->check_invalid_basic_header();
+    }
+
+    /**
+     * A helper method to check invalid basic header.
+     */
+    protected function check_invalid_basic_header() {
         // Create an event sink, trigger event and retrieve event.
         $sink = $this->redirectEvents();
 
@@ -1230,30 +1266,19 @@ class quizaccess_seb_rule__testcase extends advanced_testcase {
     }
 
     /**
-     * Test we can decide if need to redirect to SEB config link.
+     * Test cleanup when quiz is completed.
      */
-    public function test_should_redirect_to_seb_config_link() {
+    public function test_current_attempt_finished() {
+        global $SESSION;
         $this->setAdminUser();
+
         $this->quiz = $this->create_test_quiz($this->course, settings_provider::USE_SEB_CONFIG_MANUALLY);
+        $quizsettings = quiz_settings::get_record(['quizid' => $this->quiz->id]);
+        $quizsettings->save();
+        // Set access for Moodle session.
+        $SESSION->quizaccess_seb_access = [$this->quiz->cmid => true];
+        $this->make_rule()->current_attempt_finished();
 
-        $reflection = new \ReflectionClass('quizaccess_seb');
-        $method = $reflection->getMethod('should_redirect_to_seb_config_link');
-        $method->setAccessible(true);
-
-        set_config('autoreconfigureseb', '0', 'quizaccess_seb');
-        $_SERVER['HTTP_USER_AGENT'] = 'TEST';
-        $this->assertFalse($method->invoke($this->make_rule()));
-
-        set_config('autoreconfigureseb', '0', 'quizaccess_seb');
-        $_SERVER['HTTP_USER_AGENT'] = 'SEB';
-        $this->assertFalse($method->invoke($this->make_rule()));
-
-        set_config('autoreconfigureseb', '1', 'quizaccess_seb');
-        $_SERVER['HTTP_USER_AGENT'] = 'TEST';
-        $this->assertFalse($method->invoke($this->make_rule()));
-
-        set_config('autoreconfigureseb', '1', 'quizaccess_seb');
-        $_SERVER['HTTP_USER_AGENT'] = 'SEB';
-        $this->assertTrue($method->invoke($this->make_rule()));
+        $this->assertTrue(empty($SESSION->quizaccess_seb_access[$this->quiz->cmid]));
     }
 }

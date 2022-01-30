@@ -3145,5 +3145,31 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2021110800.03);
     }
 
+    if ($oldversion < 2021111700.00) {
+        $mycoursespage = new stdClass();
+        $mycoursespage->userid = null;
+        $mycoursespage->name = '__courses';
+        $mycoursespage->private = 0;
+        $mycoursespage->sortorder  = 0;
+        $DB->insert_record('my_pages', $mycoursespage);
+
+        upgrade_main_savepoint(true, 2021111700.00);
+    }
+
+    if ($oldversion < 2021111700.01) {
+
+        // Define field uniquerows to be added to reportbuilder_report.
+        $table = new xmldb_table('reportbuilder_report');
+        $field = new xmldb_field('uniquerows', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'type');
+
+        // Conditionally launch add field uniquerows.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2021111700.01);
+    }
+
     return true;
 }
