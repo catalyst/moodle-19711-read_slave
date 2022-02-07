@@ -1,6 +1,7 @@
 {
     "plugintypes": {
         "antivirus": "lib\/antivirus",
+        "connect": "lib\/connect",
         "availability": "availability\/condition",
         "qtype": "question\/type",
         "mod": "mod",
