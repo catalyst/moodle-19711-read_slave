@@ -44,114 +44,10 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_heading('auth_ldap/pluginname', '',
                 new lang_string('auth_ldapdescription', 'auth_ldap')));
 
-        // LDAP server settings.
-        $settings->add(new admin_setting_heading('auth_ldap/ldapserversettings',
-                new lang_string('auth_ldap_server_settings', 'auth_ldap'), ''));
-
-        // Host.
-        $settings->add(new admin_setting_configtext('auth_ldap/host_url',
-                get_string('auth_ldap_host_url_key', 'auth_ldap'),
-                get_string('auth_ldap_host_url', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
-
-        // Version.
-        $versions = array();
-        $versions[2] = '2';
-        $versions[3] = '3';
-        $settings->add(new admin_setting_configselect('auth_ldap/ldap_version',
-                new lang_string('auth_ldap_version_key', 'auth_ldap'),
-                new lang_string('auth_ldap_version', 'auth_ldap'), 3, $versions));
-
-        // Start TLS.
         $yesno = array(
             new lang_string('no'),
             new lang_string('yes'),
         );
-        $settings->add(new admin_setting_configselect('auth_ldap/start_tls',
-                new lang_string('start_tls_key', 'auth_ldap'),
-                new lang_string('start_tls', 'auth_ldap'), 0 , $yesno));
-
-
-        // Encoding.
-        $settings->add(new admin_setting_configtext('auth_ldap/ldapencoding',
-                get_string('auth_ldap_ldap_encoding_key', 'auth_ldap'),
-                get_string('auth_ldap_ldap_encoding', 'auth_ldap'), 'utf-8', PARAM_RAW_TRIMMED));
-
-        // Page Size. (Hide if not available).
-        $settings->add(new admin_setting_configtext('auth_ldap/pagesize',
-                get_string('pagesize_key', 'auth_ldap'),
-                get_string('pagesize', 'auth_ldap'), '250', PARAM_INT));
-
-        // Bind settings.
-        $settings->add(new admin_setting_heading('auth_ldap/ldapbindsettings',
-                new lang_string('auth_ldap_bind_settings', 'auth_ldap'), ''));
-
-        // Store Password in DB.
-        $settings->add(new admin_setting_configselect('auth_ldap/preventpassindb',
-                new lang_string('auth_ldap_preventpassindb_key', 'auth_ldap'),
-                new lang_string('auth_ldap_preventpassindb', 'auth_ldap'), 0 , $yesno));
-
-        // User ID.
-        $settings->add(new admin_setting_configtext('auth_ldap/bind_dn',
-                get_string('auth_ldap_bind_dn_key', 'auth_ldap'),
-                get_string('auth_ldap_bind_dn', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
-
-        // Password.
-        $settings->add(new admin_setting_configpasswordunmask('auth_ldap/bind_pw',
-                get_string('auth_ldap_bind_pw_key', 'auth_ldap'),
-                get_string('auth_ldap_bind_pw', 'auth_ldap'), ''));
-
-        // User Lookup settings.
-        $settings->add(new admin_setting_heading('auth_ldap/ldapuserlookup',
-                new lang_string('auth_ldap_user_settings', 'auth_ldap'), ''));
-
-        // User Type.
-        $settings->add(new admin_setting_configselect('auth_ldap/user_type',
-                new lang_string('auth_ldap_user_type_key', 'auth_ldap'),
-                new lang_string('auth_ldap_user_type', 'auth_ldap'), 'default', ldap_supported_usertypes()));
-
-        // Contexts.
-        $settings->add(new auth_ldap_admin_setting_special_contexts_configtext('auth_ldap/contexts',
-                get_string('auth_ldap_contexts_key', 'auth_ldap'),
-                get_string('auth_ldap_contexts', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
-
-        // Search subcontexts.
-        $settings->add(new admin_setting_configselect('auth_ldap/search_sub',
-                new lang_string('auth_ldap_search_sub_key', 'auth_ldap'),
-                new lang_string('auth_ldap_search_sub', 'auth_ldap'), 0 , $yesno));
-
-        // Dereference aliases.
-        $optderef = array();
-        $optderef[LDAP_DEREF_NEVER] = get_string('no');
-        $optderef[LDAP_DEREF_ALWAYS] = get_string('yes');
-
-        $settings->add(new admin_setting_configselect('auth_ldap/opt_deref',
-                new lang_string('auth_ldap_opt_deref_key', 'auth_ldap'),
-                new lang_string('auth_ldap_opt_deref', 'auth_ldap'), LDAP_DEREF_NEVER , $optderef));
-
-        // User attribute.
-        $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext('auth_ldap/user_attribute',
-                get_string('auth_ldap_user_attribute_key', 'auth_ldap'),
-                get_string('auth_ldap_user_attribute', 'auth_ldap'), '', PARAM_RAW));
-
-        // Suspended attribute.
-        $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext('auth_ldap/suspended_attribute',
-                get_string('auth_ldap_suspended_attribute_key', 'auth_ldap'),
-                get_string('auth_ldap_suspended_attribute', 'auth_ldap'), '', PARAM_RAW));
-
-        // Member attribute.
-        $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext('auth_ldap/memberattribute',
-                get_string('auth_ldap_memberattribute_key', 'auth_ldap'),
-                get_string('auth_ldap_memberattribute', 'auth_ldap'), '', PARAM_RAW));
-
-        // Member attribute uses dn.
-        $settings->add(new admin_setting_configselect('auth_ldap/memberattribute_isdn',
-                get_string('auth_ldap_memberattribute_isdn_key', 'auth_ldap'),
-                get_string('auth_ldap_memberattribute_isdn', 'auth_ldap'), 0, $yesno));
-
-        // Object class.
-        $settings->add(new admin_setting_configtext('auth_ldap/objectclass',
-                get_string('auth_ldap_objectclass_key', 'auth_ldap'),
-                get_string('auth_ldap_objectclass', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
 
         // Force Password change Header.
         $settings->add(new admin_setting_heading('auth_ldap/ldapforcepasswordchange',
@@ -166,16 +62,6 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configselect('auth_ldap/stdchangepassword',
                 new lang_string('stdchangepassword', 'auth'), new lang_string('stdchangepassword_expl', 'auth') .' '.
                 get_string('stdchangepassword_explldap', 'auth'), 0 , $yesno));
-
-        // Password Type.
-        $passtype = array();
-        $passtype['plaintext'] = get_string('plaintext', 'auth');
-        $passtype['md5']       = get_string('md5', 'auth');
-        $passtype['sha1']      = get_string('sha1', 'auth');
-
-        $settings->add(new admin_setting_configselect('auth_ldap/passtype',
-                new lang_string('auth_ldap_passtype_key', 'auth_ldap'),
-                new lang_string('auth_ldap_passtype', 'auth_ldap'), 'plaintext', $passtype));
 
         // Password change URL.
         $settings->add(new admin_setting_configtext('auth_ldap/changepasswordurl',
@@ -211,11 +97,6 @@ if ($ADMIN->fulltree) {
                 get_string('auth_ldap_expiration_warning_key', 'auth_ldap'),
                 get_string('auth_ldap_expiration_warning_desc', 'auth_ldap'), '', PARAM_RAW));
 
-        // Password Expiration attribute.
-        $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext('auth_ldap/expireattr',
-                get_string('auth_ldap_expireattr_key', 'auth_ldap'),
-                get_string('auth_ldap_expireattr_desc', 'auth_ldap'), '', PARAM_RAW));
-
         // Grace Logins.
         $settings->add(new admin_setting_configselect('auth_ldap/gracelogins',
                 new lang_string('auth_ldap_gracelogins_key', 'auth_ldap'),
@@ -234,11 +115,6 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configselect('auth_ldap/auth_user_create',
                 new lang_string('auth_ldap_auth_user_create_key', 'auth_ldap'),
                 new lang_string('auth_user_creation', 'auth'), 0 , $yesno));
-
-        // Context for new users.
-        $settings->add(new admin_setting_configtext('auth_ldap/create_context',
-                get_string('auth_ldap_create_context_key', 'auth_ldap'),
-                get_string('auth_ldap_create_context', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
 
         // System roles mapping header.
         $settings->add(new admin_setting_heading('auth_ldap/systemrolemapping',

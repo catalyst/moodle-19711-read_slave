@@ -233,59 +233,6 @@ class auth_plugin_cas extends auth_plugin_ldap {
     }
 
     /**
-     * Returns true if user should be coursecreator.
-     *
-     * @param mixed $username    username (without system magic quotes)
-     * @return boolean result
-     */
-    function iscreator($username) {
-        if (empty($this->config->host_url) or (empty($this->config->attrcreators) && empty($this->config->groupecreators)) or empty($this->config->memberattribute)) {
-            return false;
-        }
-
-        $extusername = core_text::convert($username, 'utf-8', $this->config->ldapencoding);
-
-        // Test for group creator
-        if (!empty($this->config->groupecreators)) {
-            $ldapconnection = $this->ldap_connect();
-            if ($this->config->memberattribute_isdn) {
-                if(!($userid = $this->ldap_find_userdn($ldapconnection, $extusername))) {
-                    return false;
-                }
-            } else {
-                $userid = $extusername;
-            }
-
-            $group_dns = explode(';', $this->config->groupecreators);
-            if (ldap_isgroupmember($ldapconnection, $userid, $group_dns, $this->config->memberattribute)) {
-                return true;
-            }
-        }
-
-        // Build filter for attrcreator
-        if (!empty($this->config->attrcreators)) {
-            $attrs = explode(';', $this->config->attrcreators);
-            $filter = '(& ('.$this->config->user_attribute."=$username)(|";
-            foreach ($attrs as $attr){
-                if(strpos($attr, '=')) {
-                    $filter .= "($attr)";
-                } else {
-                    $filter .= '('.$this->config->memberattribute."=$attr)";
-                }
-            }
-            $filter .= '))';
-
-            // Search
-            $result = $this->ldap_get_userlist($filter);
-            if (count($result) != 0) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Reads user information from LDAP and returns it as array()
      *
      * If no LDAP servers are configured, user information has to be
