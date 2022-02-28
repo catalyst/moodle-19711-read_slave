@@ -37,24 +37,8 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_heading('enrol_ldap_settings', '', get_string('pluginname_desc', 'enrol_ldap')));
 
         require_once($CFG->dirroot.'/enrol/ldap/settingslib.php');
-        require_once($CFG->libdir.'/ldaplib.php');
 
         $yesno = array(get_string('no'), get_string('yes'));
-
-        //--- connection settings ---
-        $settings->add(new admin_setting_heading('enrol_ldap_server_settings', get_string('server_settings', 'enrol_ldap'), ''));
-        $settings->add(new admin_setting_configtext_trim_lower('enrol_ldap/host_url', get_string('host_url_key', 'enrol_ldap'), get_string('host_url', 'enrol_ldap'), ''));
-        $settings->add(new admin_setting_configselect('enrol_ldap/start_tls', get_string('start_tls_key', 'auth_ldap'), get_string('start_tls', 'auth_ldap'), 0, $yesno));
-        // Set LDAPv3 as the default. Nowadays all the servers support it and it gives us some real benefits.
-        $options = array(3=>'3', 2=>'2');
-        $settings->add(new admin_setting_configselect('enrol_ldap/ldap_version', get_string('version_key', 'enrol_ldap'), get_string('version', 'enrol_ldap'), 3, $options));
-        $settings->add(new admin_setting_configtext_trim_lower('enrol_ldap/ldapencoding', get_string('ldap_encoding_key', 'enrol_ldap'), get_string('ldap_encoding', 'enrol_ldap'), 'utf-8'));
-        $settings->add(new admin_setting_configtext_trim_lower('enrol_ldap/pagesize', get_string('pagesize_key', 'auth_ldap'), get_string('pagesize', 'auth_ldap'), LDAP_DEFAULT_PAGESIZE, true));
-
-        //--- binding settings ---
-        $settings->add(new admin_setting_heading('enrol_ldap_bind_settings', get_string('bind_settings', 'enrol_ldap'), ''));
-        $settings->add(new admin_setting_configtext_trim_lower('enrol_ldap/bind_dn', get_string('bind_dn_key', 'enrol_ldap'), get_string('bind_dn', 'enrol_ldap'), ''));
-        $settings->add(new admin_setting_configpasswordunmask('enrol_ldap/bind_pw', get_string('bind_pw_key', 'enrol_ldap'), get_string('bind_pw', 'enrol_ldap'), ''));
 
         //--- role mapping settings ---
         $settings->add(new admin_setting_heading('enrol_ldap_roles', get_string('roles', 'enrol_ldap'), ''));
@@ -63,18 +47,6 @@ if ($ADMIN->fulltree) {
         }
         $options = $yesno;
         $settings->add(new admin_setting_configselect('enrol_ldap/course_search_sub', get_string('course_search_sub_key', 'enrol_ldap'), get_string('course_search_sub', 'enrol_ldap'), 0, $options));
-        $options = $yesno;
-        $settings->add(new admin_setting_configselect('enrol_ldap/memberattribute_isdn', get_string('memberattribute_isdn_key', 'enrol_ldap'), get_string('memberattribute_isdn', 'enrol_ldap'), 0, $options));
-        $settings->add(new admin_setting_configtext_trim_lower('enrol_ldap/user_contexts', get_string('user_contexts_key', 'enrol_ldap'), get_string('user_contexts', 'enrol_ldap'), ''));
-        $options = $yesno;
-        $settings->add(new admin_setting_configselect('enrol_ldap/user_search_sub', get_string('user_search_sub_key', 'enrol_ldap'), get_string('user_search_sub', 'enrol_ldap'), 0, $options));
-        $options = ldap_supported_usertypes();
-        $settings->add(new admin_setting_configselect('enrol_ldap/user_type', get_string('user_type_key', 'enrol_ldap'), get_string('user_type', 'enrol_ldap'), 'default', $options));
-        $options = array();
-        $options[LDAP_DEREF_NEVER] = get_string('no');
-        $options[LDAP_DEREF_ALWAYS] = get_string('yes');
-        $settings->add(new admin_setting_configselect('enrol_ldap/opt_deref', get_string('opt_deref_key', 'enrol_ldap'), get_string('opt_deref', 'enrol_ldap'), 0, $options));
-        $settings->add(new admin_setting_configtext_trim_lower('enrol_ldap/idnumber_attribute', get_string('idnumber_attribute_key', 'enrol_ldap'), get_string('idnumber_attribute', 'enrol_ldap'), '', true, true));
 
         //--- course mapping settings ---
         $settings->add(new admin_setting_heading('enrol_ldap_course_settings', get_string('course_settings', 'enrol_ldap'), ''));
@@ -111,6 +83,5 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_heading('enrol_ldap_nested_groups_settings', get_string('nested_groups_settings', 'enrol_ldap'), ''));
         $options = $yesno;
         $settings->add(new admin_setting_configselect('enrol_ldap/nested_groups', get_string('nested_groups_key', 'enrol_ldap'), get_string('nested_groups', 'enrol_ldap'), 0, $options));
-        $settings->add(new admin_setting_configtext_trim_lower('enrol_ldap/group_memberofattribute', get_string('group_memberofattribute_key', 'enrol_ldap'), get_string('group_memberofattribute', 'enrol_ldap'), '', true, true));
     }
 }
