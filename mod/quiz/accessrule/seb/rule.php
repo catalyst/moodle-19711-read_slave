@@ -452,7 +452,8 @@ class quizaccess_seb extends quiz_access_rule_base {
         if (!$this->prevent_access()) {
             $messages[] = $this->display_buttons($this->get_quit_button());
         } else {
-            $PAGE->requires->js_call_amd('quizaccess_seb/validate_quiz_access', 'init');
+            $PAGE->requires->js_call_amd('quizaccess_seb/validate_quiz_access', 'init',
+                [get_config('quizaccess_seb', 'autoreconfigureseb')]);
         }
 
         return $messages;

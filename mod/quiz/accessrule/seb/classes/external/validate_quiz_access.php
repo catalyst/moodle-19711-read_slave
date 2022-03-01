@@ -98,10 +98,6 @@ class validate_quiz_access extends external_api {
 
         // Check if there is a valid config key.
         if (!$accessmanager->validate_config_key($configkey, $url)) {
-            if ($accessmanager->should_redirect_to_seb_config_link()) {
-                $accessmanager->redirect_to_seb_config_link();
-            }
-
             access_prevented::create_strict($accessmanager, get_string('invalid_config_key', 'quizaccess_seb'),
                     $configkey, $browserexamkey)->trigger();
             return ['valid' => false];
