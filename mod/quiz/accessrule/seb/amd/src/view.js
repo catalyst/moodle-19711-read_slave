@@ -23,7 +23,6 @@
  */
 
 import Notification from "core/notification";
-import * as Str from "core/str";
 import * as Templates from "core/templates";
 
 /** @var SELECTOR List of CSS selectors. */
@@ -42,23 +41,6 @@ const TEMPLATE = {
  */
 export const allowAccess = () => {
     window.location.reload();
-};
-
-/**
- * Manages view when access has been prevented.
- */
-export const preventAccess = () => {
-    // Give information to end user why access was prevented.
-    Str.get_strings([
-        {key: 'invalidkeys', component: 'quizaccess_seb'},
-    ])
-    .then((Strings) => {
-        Notification.addNotification({
-            message: Strings[0],
-            type: "error"
-        });
-        return Strings;
-    }).catch(Notification.exception);
 };
 
 /**

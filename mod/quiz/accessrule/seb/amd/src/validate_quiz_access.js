@@ -45,16 +45,14 @@ const safeExamBrowserKeysUpdated = (autoreconfigure = false) => {
             View.allowAccess();
         } else {
             // If autoreconfigureseb is enabled, attempt to reconfigure page with quiz settings.
-            if (autoreconfigure) {
+            if (autoreconfigure === true) {
                 reconfigureSafeExamBrowser();
             }
-            View.preventAccess();
         }
 
         return response;
     }).catch(err => {
         Notification.exception(err);
-        View.preventAccess();
     });
 };
 
