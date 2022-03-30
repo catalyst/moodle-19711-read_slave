@@ -27,20 +27,21 @@ use external_value;
 use invalid_parameter_exception;
 use quiz;
 use quizaccess_seb\event\access_prevented;
+use quizaccess_seb\access_manager;
 
 require_once($CFG->dirroot . '/mod/quiz/accessmanager.php');
 require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
 require_once($CFG->libdir . '/externallib.php');
 
 /**
- * Validate browser exam key or config key.
+ * Validate browser exam key and config key.
  *
  * @package    quizaccess_seb
  * @author     Andrew Madden <andrewmadden@catalyst-au.net>
  * @copyright  2021 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class validate_quiz_access extends external_api {
+class validate_quiz_keys extends external_api {
 
     /**
      * External function parameters.
@@ -94,26 +95,30 @@ class validate_quiz_access extends external_api {
             throw new invalid_parameter_exception(get_string('error:ws:quiznotexists', 'quizaccess_seb', $cmid));
         }
 
-        $accessmanager = new \quizaccess_seb\access_manager(quiz::create($quizid));
+        $result = ['configkey' => true, 'browserexamkey' => true];
+
+        $accessmanager = new access_manager(quiz::create($quizid));
 
         // Check if there is a valid config key.
         if (!$accessmanager->validate_config_key($configkey, $url)) {
             access_prevented::create_strict($accessmanager, get_string('invalid_config_key', 'quizaccess_seb'),
                     $configkey, $browserexamkey)->trigger();
-            return ['valid' => false];
+            $result['configkey'] = false;
         }
 
         // Check if there is a valid browser exam key.
         if (!$accessmanager->validate_browser_exam_key($browserexamkey, $url)) {
             access_prevented::create_strict($accessmanager, get_string('invalid_config_key', 'quizaccess_seb'),
                     $configkey, $browserexamkey)->trigger();
-            return ['valid' => false];
+            $result['browserexamkey'] = false;
         }
 
-        // Set the state of the access for this Moodle session.
-        $accessmanager->set_session_access(true);
+        if ($result['configkey'] && $result['browserexamkey']) {
+            // Set the state of the access for this Moodle session.
+            $accessmanager->set_session_access(true);
+        }
 
-        return ['valid' => true];
+        return $result;
     }
 
     /**
@@ -123,8 +128,10 @@ class validate_quiz_access extends external_api {
      */
     public static function execute_returns(): external_single_structure {
         return new external_single_structure([
-            'valid' => new external_value(PARAM_BOOL, 'Is a provided key valid?',
-                    VALUE_REQUIRED, 0, NULL_NOT_ALLOWED)
+            'configkey' => new external_value(PARAM_BOOL, 'Is a provided config key valid?',
+                    VALUE_REQUIRED, 0, NULL_NOT_ALLOWED),
+            'browserexamkey' => new external_value(PARAM_BOOL, 'Is a provided browser exam key valid?',
+                VALUE_REQUIRED, 0, NULL_NOT_ALLOWED)
         ]);
     }
 
@@ -142,8 +149,8 @@ class validate_quiz_access extends external_api {
               FROM {course_modules} cm
               JOIN {modules} m on m.id = cm.module
              WHERE cm.id = :cmid
-               AND m.name = :moduletype
-";
+               AND m.name = :moduletype";
+
         $params = ['cmid' => $cmid, 'moduletype' => 'quiz'];
         $record = $DB->get_record_sql($sql, $params);
         return !empty($record) ? $record->instance : 0;

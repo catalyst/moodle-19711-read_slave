@@ -72,7 +72,7 @@ class validate_quiz_access_test extends \advanced_testcase {
         }
 
         $this->expectException(\invalid_parameter_exception::class);
-        \external_api::validate_parameters(validate_quiz_access::execute_parameters(), $params);
+        \external_api::validate_parameters(validate_quiz_keys::execute_parameters(), $params);
     }
 
     /**
@@ -84,7 +84,7 @@ class validate_quiz_access_test extends \advanced_testcase {
         $this->setUser($this->user);
 
         $this->expectException(\require_login_exception::class);
-        validate_quiz_access::execute($this->quiz->cmid, 'https://www.example.com/moodle', 'configkey');
+        validate_quiz_keys::execute($this->quiz->cmid, 'https://www.example.com/moodle', 'configkey');
     }
 
     /**
@@ -93,7 +93,7 @@ class validate_quiz_access_test extends \advanced_testcase {
     public function test_no_keys_provided() {
         $this->expectException(\invalid_parameter_exception::class);
         $this->expectExceptionMessage('At least one SEB key must be provided.');
-        validate_quiz_access::execute($this->quiz->cmid, 'https://www.example.com/moodle');
+        validate_quiz_keys::execute($this->quiz->cmid, 'https://www.example.com/moodle');
     }
 
     /**
@@ -104,7 +104,7 @@ class validate_quiz_access_test extends \advanced_testcase {
         $forum = $this->getDataGenerator()->create_module('forum', ['course' => $this->course->id]);
         $this->expectException(\invalid_parameter_exception::class);
         $this->expectExceptionMessage('Quiz not found matching course module id: ' . $forum->cmid);
-        validate_quiz_access::execute($forum->cmid, 'https://www.example.com/moodle', 'configkey');
+        validate_quiz_keys::execute($forum->cmid, 'https://www.example.com/moodle', 'configkey');
     }
 
     /**
@@ -124,10 +124,12 @@ class validate_quiz_access_test extends \advanced_testcase {
         $quizsettings->save();
 
         $fullconfigkey = hash('sha256', $url . $quizsettings->get_config_key());
-        $result = validate_quiz_access::execute($this->quiz->cmid, $url, $fullconfigkey);
-        $this->assertTrue($result['valid']);
+        $result = validate_quiz_keys::execute($this->quiz->cmid, $url, $fullconfigkey);
+        $this->assertTrue($result['configkey']);
+        $this->assertTrue($result['browserexamkey']);
+
         $events = $sink->get_events();
-        $this->assertEquals(0, count($events));
+        $this->assertCount(0, $events);
     }
 
     /**
@@ -145,10 +147,11 @@ class validate_quiz_access_test extends \advanced_testcase {
         $quizsettings = new quiz_settings(0, $settings);
         $quizsettings->save();
 
-        $result = validate_quiz_access::execute($this->quiz->cmid, 'https://www.example.com/moodle', 'badconfigkey');
-        $this->assertFalse($result['valid']);
+        $result = validate_quiz_keys::execute($this->quiz->cmid, 'https://www.example.com/moodle', 'badconfigkey');
+        $this->assertFalse($result['configkey']);
+        $this->assertTrue($result['browserexamkey']);
         $events = $sink->get_events();
-        $this->assertEquals(1, count($events));
+        $this->assertCount(1, $events);
         $event = reset($events);
         $this->assertInstanceOf('\quizaccess_seb\event\access_prevented', $event);
     }
@@ -173,10 +176,11 @@ class validate_quiz_access_test extends \advanced_testcase {
         $quizsettings->save();
 
         $fullbrowserexamkey = hash('sha256', $url . $validbrowserexamkey);
-        $result = validate_quiz_access::execute($this->quiz->cmid, $url, null, $fullbrowserexamkey);
-        $this->assertTrue($result['valid']);
+        $result = validate_quiz_keys::execute($this->quiz->cmid, $url, null, $fullbrowserexamkey);
+        $this->assertTrue($result['configkey']);
+        $this->assertTrue($result['browserexamkey']);
         $events = $sink->get_events();
-        $this->assertEquals(0, count($events));
+        $this->assertCount(0, $events);
     }
 
     /**
@@ -197,11 +201,12 @@ class validate_quiz_access_test extends \advanced_testcase {
         $quizsettings = new quiz_settings(0, $settings);
         $quizsettings->save();
 
-        $result = validate_quiz_access::execute($this->quiz->cmid, 'https://www.example.com/moodle', null,
+        $result = validate_quiz_keys::execute($this->quiz->cmid, 'https://www.example.com/moodle', null,
                 hash('sha256', 'badbrowserexamkey'));
-        $this->assertFalse($result['valid']);
+        $this->assertTrue($result['configkey']);
+        $this->assertFalse($result['browserexamkey']);
         $events = $sink->get_events();
-        $this->assertEquals(1, count($events));
+        $this->assertCount(1, $events);
         $event = reset($events);
         $this->assertInstanceOf('\quizaccess_seb\event\access_prevented', $event);
     }

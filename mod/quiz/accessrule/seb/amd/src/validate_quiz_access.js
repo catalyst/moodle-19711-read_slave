@@ -41,11 +41,11 @@ const safeExamBrowserKeysUpdated = (autoreconfigure = false) => {
         // Show the alert for an extra second to allow user to see it.
         setTimeout(View.clearLoadingAlert, 1000);
 
-        if (response.valid) {
+        if (response.configkey && response.browserexamkey) {
             View.allowAccess();
         } else {
             // If autoreconfigureseb is enabled, attempt to reconfigure page with quiz settings.
-            if (autoreconfigure === true) {
+            if (autoreconfigure === true && response.configkey === false) {
                 reconfigureSafeExamBrowser();
             }
         }
@@ -63,7 +63,7 @@ const safeExamBrowserKeysUpdated = (autoreconfigure = false) => {
  */
 const isQuizAccessValid = () => {
     const request = {
-        methodname: 'quizaccess_seb_validate_quiz_access',
+        methodname: 'quizaccess_seb_validate_quiz_keys',
         args: {
             cmid: Config.contextInstanceId,
             url: window.location.href,

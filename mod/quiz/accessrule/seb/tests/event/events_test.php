@@ -127,7 +127,7 @@ class events_test extends \advanced_testcase {
             . "Expected config key: '$expectedconfigkey'. "
             . "Received config key: 'configkey'. Received browser exam key: 'browserexamkey'.",
             $event->get_description());
-        $this->assertEquals(context_module::instance($quiz->cmid), $event->get_context());
+        $this->assertEquals(\context_module::instance($quiz->cmid), $event->get_context());
         $this->assertEquals($user->id, $event->userid);
         $this->assertEquals($quiz->id, $event->objectid);
         $this->assertEquals($this->course->id, $event->courseid);
