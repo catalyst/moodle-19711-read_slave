@@ -33,11 +33,12 @@ window.SafeExamBrowser = window.SafeExamBrowser || null;
 /**
  * Once the keys are fetched, action checking access.
  *
+ * @param {init} cmid Value of course module id of the quiz.
  * @param {boolean} autoreconfigure Value of Moodle setting: quizaccess_seb/autoreconfigureseb.
  */
-const safeExamBrowserKeysUpdated = (autoreconfigure = false) => {
+const safeExamBrowserKeysUpdated = (cmid, autoreconfigure = false) => {
     // Action opening up the quiz.
-    isQuizAccessValid().then((response) => {
+    isQuizAccessValid(cmid).then((response) => {
         // Show the alert for an extra second to allow user to see it.
         setTimeout(View.clearLoadingAlert, 1000);
 
@@ -46,7 +47,7 @@ const safeExamBrowserKeysUpdated = (autoreconfigure = false) => {
         } else {
             // If autoreconfigureseb is enabled, attempt to reconfigure page with quiz settings.
             if (autoreconfigure === true && response.configkey === false) {
-                reconfigureSafeExamBrowser();
+                reconfigureSafeExamBrowser(cmid);
             }
         }
 
@@ -59,13 +60,14 @@ const safeExamBrowserKeysUpdated = (autoreconfigure = false) => {
 /**
  * Validate keys in Moodle backend.
  *
+ * @param {init} cmid Value of course module id of the quiz.
  * @return {Promise}
  */
-const isQuizAccessValid = () => {
+const isQuizAccessValid = (cmid) => {
     const request = {
         methodname: 'quizaccess_seb_validate_quiz_keys',
         args: {
-            cmid: Config.contextInstanceId,
+            cmid: cmid,
             url: window.location.href,
             configkey: window.SafeExamBrowser.security.configKey,
             browserexamkey: window.SafeExamBrowser.security.browserExamKey
@@ -88,26 +90,29 @@ const isKeyEmpty = (key) => {
 
 /**
  * Reload Safe Exam Browser with current quiz configuration.
+ *
+ * @param {init} cmid Value of course module id of the quiz.
  */
-const reconfigureSafeExamBrowser = () => {
+const reconfigureSafeExamBrowser = (cmid) => {
     const domain = Config.wwwroot.replace(/^http/i, 'seb');
-    const redirecturl = domain + '/mod/quiz/accessrule/seb/config.php?cmid=' + Config.contextInstanceId;
+    const redirecturl = domain + '/mod/quiz/accessrule/seb/config.php?cmid=' + cmid;
     document.location.replace(redirecturl);
 };
 
 /**
  * Initialize the process of fetching the keys.
  *
+ * @param {init} cmid Value of course module id of the quiz.
  * @param {boolean} autoreconfigure Value of Moodle setting: quizaccess_seb/autoreconfigureseb.
  */
-export const init = async(autoreconfigure = false) => {
+export const init = async(cmid, autoreconfigure = false) => {
     // If the SafeExamBrowser object is instantiated, try and use it to fetch the access keys.
     if (window.SafeExamBrowser !== null) {
         await View.addLoadingAlert();
         // If the SEB keys are already set, we can call our callback directly.
 
         if (!isKeyEmpty(window.SafeExamBrowser.security.configKey) || !isKeyEmpty(window.SafeExamBrowser.security.browserExamKey)) {
-            safeExamBrowserKeysUpdated(autoreconfigure);
+            safeExamBrowserKeysUpdated(cmid, autoreconfigure);
         } else {
             window.SafeExamBrowser.security.updateKeys(safeExamBrowserKeysUpdated);
         }
