@@ -78,6 +78,7 @@ trait test_moodle_read_slave_trait {
      * @param mixed $result
      */
     public function query_end($result) {
+        parent::query_end($result);
         $this->set_db_handle($this->dbhwrite);
     }
 

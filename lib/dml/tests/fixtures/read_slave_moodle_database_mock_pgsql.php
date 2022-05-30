@@ -38,4 +38,12 @@ require_once(__DIR__.'/test_moodle_read_slave_trait.php');
  */
 class read_slave_moodle_database_mock_pgsql extends pgsql_native_moodle_database {
     use test_moodle_read_slave_trait;
+
+    /**
+     * Backport to 3.9 - for some reason test_moodle_read_slave_trait change breaks the tests
+     * @param mixed $result
+     */
+    public function query_end($result) {
+        $this->set_db_handle($this->dbhwrite);
+    }
 }
