@@ -1391,6 +1391,8 @@ class events_test extends \advanced_testcase {
      * These data are validated by \core_competency\evidence_created::validate_data().
      */
     public function test_evidence_created_with_missing_data() {
+        $this->resetAfterTest(true);
+
         $eventdata = [
             'contextid'  => 1,
             'objectid' => 1,

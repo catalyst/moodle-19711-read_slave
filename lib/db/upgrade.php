@@ -3348,5 +3348,19 @@ privatefiles,moodle|/user/files.php';
         upgrade_main_savepoint(true, 2023062900.01);
     }
 
+    if ($oldversion < 2023070700.00) {
+        $table = new xmldb_table('course');
+
+        $field = new xmldb_field('needsbackup', XMLDB_TYPE_INTEGER, '1', null,
+            XMLDB_NOTNULL, null, '1', 'showcompletionconditions');
+        $index = new xmldb_index('courseneedsbackup_idx', XMLDB_INDEX_NOTUNIQUE, ['needsbackup']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2023070700.00);
+    }
+
     return true;
 }

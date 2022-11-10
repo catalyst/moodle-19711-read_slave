@@ -25,6 +25,8 @@
 namespace core_backup;
 
 use backup_cron_automated_helper;
+use core_course\management\helper as course_helper;
+use context_course;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,6 +40,7 @@ require_once($CFG->libdir . '/completionlib.php');
  * @package    core_backup
  * @copyright  2019 John Yao <johnyao@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \backup_cron_automated_helper
  */
 class automated_backup_test extends \advanced_testcase {
     /**
@@ -66,6 +69,8 @@ class automated_backup_test extends \advanced_testcase {
                 array('format' => 'topics', 'numsections' => 3,
                         'enablecompletion' => COMPLETION_ENABLED),
                 array('createsections' => true));
+        $this->assertEquals(1, $this->course->needsbackup);
+
         $forum = $generator->create_module('forum', array(
                 'course' => $this->course->id));
         $forum2 = $generator->create_module('forum', array(
@@ -268,7 +273,7 @@ class automated_backup_test extends \advanced_testcase {
         $backupcourse = $DB->get_record('backup_courses', array('courseid' => $this->course->id));
         $course = $DB->get_record('course', array('id' => $this->course->id));
 
-        $course->timemodified = time() - 2 * DAYSECS - 1;
+        $course->needsbackup = 0;
 
         $classobject = $this->backupcronautomatedhelper->return_this();
         $nextstarttime = backup_cron_automated_helper::calculate_next_automated_backup(null, time());
@@ -282,7 +287,7 @@ class automated_backup_test extends \advanced_testcase {
     }
 
     /**
-     * Test the task completes when coureid is missing.
+     * Test the task completes when courseid is missing.
      */
     public function test_task_complete_when_courseid_is_missing() {
         global $DB;
@@ -345,7 +350,115 @@ class automated_backup_test extends \advanced_testcase {
 
         $this->assertStringContainsString('Automated backup for course: ' . $this->course->fullname . ' encounters an error.',
             $output);
+        // Error, so needsbackup not cleared.
+        $this->assertEquals(
+            1,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
         \core\task\manager::adhoc_task_complete($task);
+    }
+
+    /**
+     * Test the task completes.
+     *
+     * @covers \core_course\management\helper
+     */
+    public function test_task_complete() {
+        global $DB;
+        $admin = get_admin();
+        $classobject = $this->backupcronautomatedhelper->return_this();
+
+        // Create this backup course.
+        $backupcourse = new \stdClass;
+        $backupcourse->courseid = $this->course->id;
+        $backupcourse->laststatus = backup_cron_automated_helper::BACKUP_STATUS_NOTYETRUN;
+        $DB->insert_record('backup_courses', $backupcourse);
+        $backupcourse = $DB->get_record('backup_courses', ['courseid' => $this->course->id]);
+
+        // Create a backup task.
+        $method = new \ReflectionMethod('\backup_cron_automated_helper', 'push_course_backup_adhoc_task');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $method->invokeArgs($classobject, [$backupcourse, $admin]);
+
+        $task = \core\task\manager::get_next_adhoc_task(time());
+
+        ob_start();
+        $task->execute();
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Automated backup for course: ' . $this->course->fullname . ' completed.',
+            $output);
+        // No error, so needsbackup cleared.
+        $this->assertEquals(
+            0,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
+        \core\task\manager::adhoc_task_complete($task);
+    }
+
+    /**
+     * Test course.needsbackup set/clear.
+     *
+     * @covers \core_course\management\helper
+     */
+    public function test_course_needsbackup() {
+        global $DB;
+
+        $user = $this->getDataGenerator()->create_user();
+
+        course_helper::mark_course_backed_up($this->course->id);
+        $this->assertEquals(
+            0,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
+
+        $context = context_course::instance($this->course->id);
+        course_view($context);
+        $this->assertEquals(
+            0,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
+
+        // Update course and trigger course_updated event.
+        update_course($this->course);
+        $this->assertEquals(
+            1,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
+
+        course_helper::mark_course_backed_up($this->course->id);
+        // Enrol user and trigger user_enrolment_created event.
+        $this->getDataGenerator()->enrol_user($user->id, $this->course->id) || die;
+        $this->assertEquals(
+            1,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
+    }
+
+    /**
+     * Test backup_auto_exclude_events config.
+     *
+     * @covers \core_course\management\helper
+     */
+    public function test_backup_auto_exclude_events() {
+        global $DB;
+
+        $user = $this->getDataGenerator()->create_user();
+
+        course_helper::mark_course_backed_up($this->course->id);
+        $this->assertEquals(
+            0,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
+
+        // Exclude user_enrolment_created and role_assigned events and test that needsbackup is not set.
+        set_config('backup_auto_exclude_events', '\core\event\role_assigned,\core\event\user_enrolment_created', 'backup');
+        // Enrol user and trigger user_enrolment_created event.
+        $this->getDataGenerator()->enrol_user($user->id, $this->course->id);
+        $this->assertEquals(
+            0,
+            $DB->get_field('course', 'needsbackup', ['id' => $this->course->id], MUST_EXIST)
+        );
     }
 }
 

@@ -2200,7 +2200,7 @@ class courselib_test extends advanced_testcase {
      * Test that triggering a course_restored event works as expected.
      */
     public function test_course_restored_event() {
-        global $CFG;
+        global $DB, $CFG;
 
         // Get the necessary files to perform backup and restore.
         require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
@@ -2248,6 +2248,11 @@ class courselib_test extends advanced_testcase {
         $this->assertEquals($rc->get_courseid(), $event->objectid);
         $this->assertEquals(context_course::instance($rc->get_courseid())->id, $event->contextid);
         $this->assertEventContextNotUsed($event);
+        // Cleared needsbackup.
+        $this->assertEquals(
+            0,
+            $DB->get_field('course', 'needsbackup', ['id' => $course->id], MUST_EXIST)
+        );
 
         // Destroy the resource controller since we are done using it.
         $rc->destroy();

@@ -27,16 +27,18 @@ namespace core_course\management;
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot . '/course/lib.php');
+use core\event\base as event;
 
 /**
  * Course and category management interface helper class.
  *
  * This class provides methods useful to the course and category management interfaces.
- * Many of the methods on this class are static and serve one of two purposes.
+ * Many of the methods on this class are static and serve following purposes.
  *  1.  encapsulate functionality in an effort to ensure minimal changes between the different
  *      methods of interaction. Specifically browser, AJAX and webservice.
  *  2.  abstract logic for acquiring actions away from output so that renderers may use them without
  *      having to include any logic or capability checks.
+ *  3.  event listeners
  *
  * @package    core_course
  * @copyright  2013 Sam Hemelryk
@@ -49,6 +51,15 @@ class helper {
      * @var null|array
      */
     protected static $expandedcategories = null;
+
+    /**
+     * Config vars that signal need for course backup on LEVEL_PARTICIPATING events
+     * @var array
+     */
+    private static $backupparticipating = [
+        'backup_auto_comments',
+        'backup_auto_userscompletion',
+    ];
 
     /**
      * Returns course details in an array ready to be printed.
@@ -1022,5 +1033,102 @@ class helper {
     public static function can_copy_course(int $courseid): bool {
         $coursecontext = \context_course::instance($courseid);
         return has_all_capabilities(self::get_course_copy_capabilities(), $coursecontext);
+    }
+
+    /**
+     * Observe when a course is changed in some way.
+     *
+     * @param  event $event
+     * @return void
+     */
+    public static function observe_course_updated(event $event): void {
+        global $COURSE;
+
+        if (empty($event->courseid) || $event->courseid == SITEID) {
+            return;
+        }
+
+        if ($event->crud == 'r') {
+            return;
+        }
+
+        if (isset($COURSE->id) && isset($COURSE->needsbackup)
+            && $COURSE->id == $event->courseid
+            && $COURSE->needsbackup == 1
+        ) {
+            // No need to update, already marked for backup.
+            return;
+        }
+
+        $levels = [event::LEVEL_TEACHING, event::LEVEL_OTHER];
+        foreach (self::$backupparticipating as $conf) {
+            if (get_config('backup', $conf)) {
+                $levels[] = event::LEVEL_PARTICIPATING;
+                break;
+            }
+        }
+        if (!in_array($event->edulevel, $levels)) {
+            return;
+        }
+
+        $excludeevents = get_config('backup', 'backup_auto_exclude_events');
+        if (!empty($excludeevents)) {
+            $excludeevents = explode(',', $excludeevents);
+            if (in_array($event->eventname, $excludeevents)) {
+                return;
+            }
+        }
+
+        self::mark_course_for_backup($event->courseid);
+    }
+
+    /**
+     * Observe when a course backup is completed.
+     *
+     * @param  event $event
+     * @return void
+     */
+    public static function observe_course_backup_created(event $event): void {
+        self::mark_course_backed_up($event->objectid);
+    }
+
+    /**
+     * Observe when a course is restored
+     *
+     * @param  event $event
+     * @return void
+     */
+    public static function observe_course_restored(event $event): void {
+        self::mark_course_backed_up($event->objectid);
+    }
+
+    /**
+     * Mark course for backup.
+     *
+     * @param  int $courseid
+     * @return void
+     */
+    public static function mark_course_for_backup($courseid): void {
+        global $DB, $COURSE;
+
+        $DB->set_field('course', 'needsbackup', 1, ['id' => $courseid, 'needsbackup' => 0]);
+        if (isset($COURSE->id) && $COURSE->id == $courseid) {
+            $COURSE->needsbackup = 1;
+        }
+    }
+
+    /**
+     * Mark course backed up.
+     *
+     * @param  int $courseid
+     * @return void
+     */
+    public static function mark_course_backed_up($courseid): void {
+        global $DB, $COURSE;
+
+        $DB->set_field('course', 'needsbackup', 0, ['id' => $courseid]);
+        if (isset($COURSE->id) && $COURSE->id == $courseid) {
+            $COURSE->needsbackup = 0;
+        }
     }
 }
