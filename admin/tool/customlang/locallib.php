@@ -927,17 +927,30 @@ class tool_customlang_translator implements renderable {
     public $currentpage = 0;
 
     /** @var array of stdclass strings to display */
-    public $strings = array();
+    public $strings = [];
+
+    /** @var array of lang string ids to display */
+    public $errors = [];
 
     /** @var stdclass */
     protected $filter;
 
-    public function __construct(moodle_url $handler, $lang, $filter, $currentpage = 0) {
+    /**
+     * Constructor
+     *
+     * @param \moodle_url $handler
+     * @param string $lang
+     * @param object $filter
+     * @param array|null $errors
+     * @param int|null $currentpage
+     */
+    public function __construct(moodle_url $handler, string $lang, object $filter, ?array $errors = [], ?int $currentpage = 0) {
         global $DB;
 
         $this->handler      = $handler;
         $this->lang         = $lang;
         $this->filter       = $filter;
+        $this->errors       = $errors;
         $this->currentpage  = $currentpage;
 
         if (empty($filter) or empty($filter->component)) {

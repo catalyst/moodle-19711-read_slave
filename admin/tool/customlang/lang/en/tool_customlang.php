@@ -76,6 +76,7 @@ $string['markuptodate'] = 'mark as up-to-date';
 $string['modifiedno'] = 'There are no modified strings to save.';
 $string['modifiednum'] = 'There are {$a} modified strings. Do you wish to save these changes to your local language pack?';
 $string['nolocallang'] = 'No local strings found.';
+$string['nosearch'] = 'No Search string';
 $string['notice_ignorenew'] = 'Ignoring string {$a->component}/{$a->stringid} because it is not customised.';
 $string['notice_ignoreupdate'] = 'Ignoring string {$a->component}/{$a->stringid} because it is already defined.';
 $string['notice_inexitentstring'] = 'String {$a->component}/{$a->stringid} not found.';
@@ -90,6 +91,9 @@ $string['placeholderwarning'] = 'string contains a placeholder';
 $string['pluginname'] = 'Language customisation';
 $string['savecheckin'] = 'Save changes to the language pack';
 $string['savecontinue'] = 'Apply changes and continue editing';
+$string['savesearchreplace'] = 'Apply search/replace and continue editing';
+$string['search'] = 'Search<br>(case sensitive)';
+$string['replacewith'] = 'Replace with';
 $string['privacy:metadata'] = 'The Language customisation plugin does not store any personal data.';
 
 $string['batchreplaceheading'] = 'Language customization: Batch search and replace';

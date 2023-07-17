@@ -50,6 +50,11 @@
     }
 }}
 
+{{#errors}}
+    <div class="text-danger">
+        {{.}}
+    </div>
+{{/errors}}
 {{^hasstrings}}
     {{{ nostrings }}}
 {{/hasstrings}}
@@ -65,6 +70,16 @@
         </button>
         <button type="submit" name="savecheckin" class="btn btn-secondary">
             {{#str}}savecheckin, tool_customlang{{/str}}
+        </button>
+    </fieldset>
+
+    <fieldset class="m-3">
+        <label for="translatorsearch">{{#str}}search, tool_customlang{{/str}}:</label>
+        <input type="text" id="translatorsearch" name="translatorsearch" value="">
+        <label for="translatorreplace">{{#str}}replacewith, tool_customlang{{/str}}:</label>
+        <input type="text" id="translatorreplace" name="translatorreplace" value="">
+        <button type="submit" name="searchreplace" class="btn btn-secondary">
+            {{#str}}savesearchreplace, tool_customlang{{/str}}
         </button>
     </fieldset>
 

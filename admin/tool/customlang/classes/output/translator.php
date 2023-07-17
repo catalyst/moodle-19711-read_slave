@@ -65,6 +65,7 @@ class translator implements renderable, templatable {
 
         $data->nostrings = $output->notification(get_string('nostringsfound', 'tool_customlang'));
         $data->formurl = $this->translator->handler;
+        $data->errors = $this->translator->errors;
         $data->currentpage = $this->translator->currentpage;
         $data->sesskey = sesskey();
         $data->strings = [];
