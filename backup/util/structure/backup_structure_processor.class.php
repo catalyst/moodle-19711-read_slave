@@ -85,7 +85,7 @@ class backup_structure_processor extends base_processor {
             foreach ($fileannotations as $component => $area) {
                 foreach ($area as $filearea => $info) {
                     $contextid = !is_null($info->contextid) ? $info->contextid : $this->get_var(backup::VAR_CONTEXTID);
-                    $itemid    = !is_null($info->element) ? $info->element->get_value() : null;
+                    $itemid    = !is_null($info->element) ? (is_scalar($info->element) ? $info->element : $info->element->get_value()) : null;
                     backup_structure_dbops::annotate_files($backupid, $contextid, $component, $filearea, $itemid, $this->progress);
                 }
             }

@@ -955,15 +955,19 @@ abstract class restore_dbops {
         //   - info: contains the whole original object (times, names...)
         //   (all them being original ids as loaded from xml)
 
+        $params = array($restoreid, $oldcontextid, $component);
+
         // itemname = null, we are going to match only by context, no need to use itemid (all them are 0)
         if ($itemname == null) {
             $sql = "SELECT id AS bftid, contextid, component, filearea, itemid, itemid AS newitemid, info
                       FROM {backup_files_temp}
                      WHERE backupid = ?
                        AND contextid = ?
-                       AND component = ?
-                       AND filearea  = ?";
-            $params = array($restoreid, $oldcontextid, $component, $filearea);
+                       AND component = ?";
+            if (!empty($filearea)) {
+                $sql .= ' AND filearea = ?';
+                $params[] = $filearea;
+            }
 
         // itemname not null, going to join with backup_ids to perform the old-new mapping of itemids
         } else {
@@ -975,9 +979,12 @@ abstract class restore_dbops {
                      WHERE f.backupid = ?
                        AND f.contextid = ?
                        AND f.component = ?
-                       AND f.filearea = ?
                        AND i.itemname = ?";
-            $params = array($restoreid, $oldcontextid, $component, $filearea, $itemname);
+            $params[] = $itemname;
+            if (!empty($filearea)) {
+                $sql .= ' AND filearea = ?';
+                $params[] = $filearea;
+            }
             if ($olditemid !== null) { // Just process ONE olditemid intead of the whole itemname
                 $sql .= ' AND i.itemid = ?';
                 $params[] = $olditemid;
@@ -1010,7 +1017,7 @@ abstract class restore_dbops {
 
             // dir found (and not root one), let's create it
             if ($file->filename == '.') {
-                $fs->create_directory($newcontextid, $component, $filearea, $rec->newitemid, $file->filepath, $mappeduserid);
+                $fs->create_directory($newcontextid, $component, $rec->filearea, $rec->newitemid, $file->filepath, $mappeduserid);
                 continue;
             }
 
@@ -1023,7 +1030,7 @@ abstract class restore_dbops {
             $file_record = array(
                 'contextid'    => $newcontextid,
                 'component'    => $component,
-                'filearea'     => $filearea,
+                'filearea'     => $rec->filearea,
                 'itemid'       => $rec->newitemid,
                 'filepath'     => $file->filepath,
                 'filename'     => $file->filename,
@@ -1059,7 +1066,7 @@ abstract class restore_dbops {
                     }
 
                     // create the file in the filepool if it does not exist yet
-                    if (!$fs->file_exists($newcontextid, $component, $filearea, $rec->newitemid, $file->filepath, $file->filename)) {
+                    if (!$fs->file_exists($newcontextid, $component, $rec->filearea, $rec->newitemid, $file->filepath, $file->filename)) {
 
                         // If no license found, use default.
                         if ($file->license == null){
@@ -1072,7 +1079,7 @@ abstract class restore_dbops {
                     // This backup does not include the files - they should be available in moodle filestorage already.
 
                     // Create the file in the filepool if it does not exist yet.
-                    if (!$fs->file_exists($newcontextid, $component, $filearea, $rec->newitemid, $file->filepath, $file->filename)) {
+                    if (!$fs->file_exists($newcontextid, $component, $rec->filearea, $rec->newitemid, $file->filepath, $file->filename)) {
 
                         // Even if a file has been deleted since the backup was made, the file metadata may remain in the
                         // files table, and the file will not yet have been moved to the trashdir. e.g. a draft file version.
@@ -1122,7 +1129,7 @@ abstract class restore_dbops {
             } else {
                 // this is an alias - we can't create it yet so we stash it in a temp
                 // table and will let the final task to deal with it
-                if (!$fs->file_exists($newcontextid, $component, $filearea, $rec->newitemid, $file->filepath, $file->filename)) {
+                if (!$fs->file_exists($newcontextid, $component, $rec->filearea, $rec->newitemid, $file->filepath, $file->filename)) {
                     $info = new stdClass();
                     // oldfile holds the raw information stored in MBZ (including reference-related info)
                     $info->oldfile = $file;

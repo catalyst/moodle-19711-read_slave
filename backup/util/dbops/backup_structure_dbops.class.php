@@ -124,7 +124,7 @@ abstract class backup_structure_dbops extends backup_dbops {
                    AND component = ?';
         $params = array($contextid, $component);
 
-        if (!is_null($filearea)) { // Add filearea to query and params if necessary
+        if (!empty($filearea)) { // Add filearea to query and params if necessary
             $sql .= ' AND filearea = ?';
             $params[] = $filearea;
         }
