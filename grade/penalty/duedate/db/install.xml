@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="grade/penalty/duedate/db" VERSION="20240613" COMMENT="Penalty rule table"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="gradepenalty_duedate_rule" COMMENT="Default comment for gradepenalty_duedate, please edit me">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The context where the rule will be applied to"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="Rule with lower late value will display first"/>
+        <FIELD NAME="latefor" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="How long has the submission being late for"/>
+        <FIELD NAME="penalty" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The penalty will be applied the late submission"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="contextid_idx" UNIQUE="false" FIELDS="contextid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
