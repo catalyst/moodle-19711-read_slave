@@ -221,5 +221,47 @@ if (has_capability('moodle/grade:manage', $systemcontext)
         }
     }
 
-} // end of speedup
+    // Penalty.
+    $ADMIN->add('grades', new admin_category('gradepenalty', new lang_string('gradepenalty', 'grades')));
 
+    // General settings for penalty.
+    $temp = new admin_settingpage('penaltysettings', new lang_string('gradepenalty_general_settings', 'grades'),
+        'moodle/grade:manage');
+    if ($ADMIN->fulltree) {
+        // Enable.
+        $temp->add(new admin_setting_configcheckbox('gradepenalty_enabled',
+            new lang_string('gradepenalty_enabled', 'grades'),
+            new lang_string('gradepenalty_enabled_help', 'grades'), 0));
+        // List of modules which support penalty.
+        $supported = core_grades\local\penalty\manager::get_supported_modules();
+        if (!empty($supported)) {
+            $options = [];
+            foreach ($supported as $module) {
+                $options[$module] = new lang_string('modulename', $module);
+            }
+            $temp->add(new admin_setting_configmultiselect('gradepenalty_supportedplugins',
+                new lang_string('gradepenalty_supportedplugins', 'grades'),
+                new lang_string('gradepenalty_supportedplugins_help', 'grades'), [], $options));
+        }
+    }
+    $ADMIN->add('gradepenalty', $temp);
+
+    if (get_config('core', 'gradepenalty_enabled')) {
+        // External page to manage the penalty plugins.
+        $temp = new admin_externalpage(
+            'managepenaltyplugins',
+            get_string('managepenaltyplugins', 'grades'),
+            new moodle_url('/grade/penalty/manage_penalty_plugins.php'),
+            'moodle/grade:manage'
+        );
+        $ADMIN->add('gradepenalty', $temp);
+
+        // Settings from each penalty plugin.
+        foreach (core_component::get_plugin_list('gradepenalty') as $plugin => $plugindir) {
+            // Include all the settings commands for this plugin if there are any.
+            if (file_exists($plugindir.'/settings.php')) {
+                include($plugindir.'/settings.php');
+            }
+        }
+    }
+} // end of speedup
