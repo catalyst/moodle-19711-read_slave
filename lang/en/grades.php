@@ -334,6 +334,7 @@ $string['gradeoutcomescourses'] = 'Course outcomes';
 $string['gradepass'] = 'Grade to pass';
 $string['gradepass_help'] = 'This setting determines the minimum grade required to pass. The value is used in activity and course completion, and in the gradebook, where pass grades are highlighted in green and fail grades in red.';
 $string['gradepassgreaterthangrade'] = 'The grade to pass can not be greater than the maximum possible grade {$a}';
+$string['gradepenalty_indicator_info'] = 'Late penalty applied -{$a} marks';
 $string['gradepointdefault'] = 'Grade point default';
 $string['gradepointdefault_help'] = 'This setting determines the default value for the grade point value available in a grade item.';
 $string['gradepointdefault_validateerror'] = 'This setting must be an integer between 1 and the grade point maximum.';
