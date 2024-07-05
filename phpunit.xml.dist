@@ -58,6 +58,10 @@
       <directory suffix="_test.php">lib/external/tests</directory>
       <exclude>lib/external/tests/classes</exclude>
     </testsuite>
+    <testsuite name="core_exemptions_testsuite">
+      <directory suffix="_test.php">exemptions/tests</directory>
+      <exclude>exemptions/tests/classes</exclude>
+    </testsuite>
     <testsuite name="core_favourites_testsuite">
       <directory suffix="_test.php">favourites/tests</directory>
       <exclude>favourites/tests/classes</exclude>
