@@ -81,6 +81,7 @@
         "enrol": "enrol",
         "error": null,
         "external": "lib/external",
+        "exemptions": "exemptions",
         "favourites": "favourites",
         "filepicker": null,
         "fileconverter": "files\/converter",
