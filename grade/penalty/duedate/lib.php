@@ -23,6 +23,9 @@
  */
 
 /** Minimum late for value */
+
+use core_grades\local\penalty\manager;
+
 define('GRADEPENALTY_DUEDATE_OVERDUEBY_MIN', 1);
 
 /** Maximum late for value */
@@ -50,6 +53,39 @@ function gradepenalty_duedate_extend_navigation_course(navigation_node $navigati
     if (!$penaltyplugins['duedate']->is_enabled()) {
         return;
     }
+
+    if (has_capability('gradepenalty/duedate:manage', $context)) {
+        $url = new moodle_url('/grade/penalty/duedate/manage_penalty_rule.php', ['contextid' => $context->id]);
+
+        $settingsnode = navigation_node::create(get_string('penaltyrule', 'gradepenalty_duedate'),
+            $url, navigation_node::TYPE_SETTING,
+            null, 'penaltyrule', new pix_icon('i/settings', ''));
+        $navigation->add_node($settingsnode);
+    }
+}
+
+/**
+ * Extend the module navigation with a penalty rule settings.
+ *
+ * @param navigation_node $navigation The settings navigation object
+ * @param cm_info $cm The course module
+ * @return void
+ */
+function gradepenalty_duedate_extend_navigation_module(navigation_node $navigation, cm_info $cm) {
+    // Get plugin info of this plugin.
+    $penaltyplugins = core_plugin_manager::instance()->get_plugins_of_type('gradepenalty');
+
+    // Return if the plugin is not enabled.
+    if (!$penaltyplugins['duedate']->is_enabled()) {
+        return;
+    }
+
+    // Return if the module is not enabled.
+    if (!manager::is_penalty_enabled_for_module($cm->modname)) {
+        return;
+    }
+
+    $context = context_module::instance($cm->id);
 
     if (has_capability('gradepenalty/duedate:manage', $context)) {
         $url = new moodle_url('/grade/penalty/duedate/manage_penalty_rule.php', ['contextid' => $context->id]);
