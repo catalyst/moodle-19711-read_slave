@@ -1236,5 +1236,21 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024111500.04);
     }
 
+    if ($oldversion < 2024111100.00) {
+
+        // Define field penalty to be added to grade_grades.
+        $table = new xmldb_table('grade_grades');
+        $field = new xmldb_field('deductedmark', XMLDB_TYPE_NUMBER, '10, 5', null,
+            XMLDB_NOTNULL, null, '0', 'aggregationweight');
+
+        // Conditionally launch add field penalty.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2024111100.00);
+    }
+
     return true;
 }
