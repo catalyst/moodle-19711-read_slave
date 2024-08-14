@@ -16,6 +16,8 @@
 
 namespace gradereport_history;
 
+use context_course;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -36,8 +38,8 @@ final class report_test extends \advanced_testcase {
         // Making the setup.
         $c1 = $this->getDataGenerator()->create_course();
         $c2 = $this->getDataGenerator()->create_course();
-        $c1ctx = \context_course::instance($c1->id);
-        $c2ctx = \context_course::instance($c2->id);
+        $c1ctx = context_course::instance($c1->id);
+        $c2ctx = context_course::instance($c2->id);
 
         // Users.
         $u1 = $this->getDataGenerator()->create_user();
@@ -179,7 +181,7 @@ final class report_test extends \advanced_testcase {
         // Put course in separate groups mode, add grader1 and two students to the same group.
         $c1->groupmode = SEPARATEGROUPS;
         update_course($c1);
-        $this->assertFalse(has_capability('moodle/site:accessallgroups', \context_course::instance($c1->id)));
+        $this->assertFalse(has_capability('moodle/site:accessallgroups', context_course::instance($c1->id)));
         $g1 = self::getDataGenerator()->create_group(['courseid' => $c1->id, 'name' => 'g1']);
         self::getDataGenerator()->create_group_member(['groupid' => $g1->id, 'userid' => $grader1->id]);
         self::getDataGenerator()->create_group_member(['groupid' => $g1->id, 'userid' => $u1->id]);
@@ -200,8 +202,8 @@ final class report_test extends \advanced_testcase {
         // Making the setup.
         $c1 = $this->getDataGenerator()->create_course();
         $c2 = $this->getDataGenerator()->create_course();
-        $c1ctx = \context_course::instance($c1->id);
-        $c2ctx = \context_course::instance($c2->id);
+        $c1ctx = context_course::instance($c1->id);
+        $c2ctx = context_course::instance($c2->id);
 
         $c1m1 = $this->getDataGenerator()->create_module('assign', array('course' => $c1));
         $c2m1 = $this->getDataGenerator()->create_module('assign', array('course' => $c2));
@@ -354,7 +356,7 @@ final class report_test extends \advanced_testcase {
 
         // Making the setup.
         $c1 = $this->getDataGenerator()->create_course();
-        $c1ctx = \context_course::instance($c1->id);
+        $c1ctx = context_course::instance($c1->id);
         $c1m1 = $this->getDataGenerator()->create_module('assign', array('course' => $c1));
 
         // Creating grade history for some users.
@@ -483,7 +485,7 @@ final class report_test extends \advanced_testcase {
         $this->setUser($t1);
 
         // Fetch the users.
-        $users = \gradereport_history\helper::get_users(\context_course::instance($course->id));
+        $users = \gradereport_history\helper::get_users(context_course::instance($course->id));
         // Confirm that the number of users fetched is the same as the count of expected users.
         $this->assertCount(count($expectedusers), $users);
         foreach ($users as $user) {
@@ -552,6 +554,64 @@ final class report_test extends \advanced_testcase {
         $this->setUser($u3);
         $graders = \gradereport_history\helper::get_graders($c3->id);
         $this->assertCount(1, $graders); // Including "all graders" .
+    }
+
+    /**
+     * Test grade history with grade updated by different sources
+     *
+     * @covers \gradereport_history\output\tablelog::get_sql_and_params
+     *
+     * @return void
+     */
+    public function test_grade_history_with_different_sources(): void {
+        $this->resetAfterTest();
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a user and enrol them in the course.
+        $user = $teacher = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        // Create an assignment.
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course]);
+
+        // Create a grade item.
+        $gi = \grade_item::fetch(['iteminstance' => $assign->id, 'itemtype' => 'mod', 'itemmodule' => 'assign']);
+
+        // Create some grade history entries with same time modifies.
+        $time = time();
+        $this->create_grade_history([
+            'itemid' => $gi->id,
+            'userid' => $user->id,
+            'usermodified' => $teacher->id,
+            'finalgrade' => 50,
+            'source' => 'mod/assign',
+            'timemodified' => $time,
+        ]);
+        $this->create_grade_history([
+            'itemid' => $gi->id,
+            'userid' => $user->id,
+            'usermodified' => $teacher->id,
+            'finalgrade' => 60,
+            'source' => 'cli',
+            'timemodified' => $time,
+        ]);
+
+        // Fetch the grade history.
+        $results = $this->get_tablelog_results(context_course::instance($course->id));
+
+        // Check the grade history.
+        $this->assertCount(2, $results);
+        $assigngrade = array_pop($results);
+        $cligrade = array_pop($results);
+
+        // Check their values.
+        $this->assertEquals(60, $cligrade->finalgrade);
+        $this->assertEquals(50, $cligrade->prevgrade);
+        $this->assertEquals('cli', $cligrade->source);
+        $this->assertEquals(50, $assigngrade->finalgrade);
+        $this->assertEquals(null, $assigngrade->prevgrade);
+        $this->assertEquals('mod/assign', $assigngrade->source);
     }
 
     /**
