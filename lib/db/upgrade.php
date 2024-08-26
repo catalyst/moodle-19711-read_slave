@@ -1240,7 +1240,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024080500.00);
     }
 
-    if ($oldversion < 2024081000.01) {
+    if ($oldversion < 2024082300.01) {
         $table = new xmldb_table('exemption');
 
         // Adding fields to table exemption.
@@ -1265,13 +1265,12 @@ function xmldb_main_upgrade($oldversion) {
         $table->add_index('uniqueuserexemptionitem', XMLDB_INDEX_UNIQUE, ['component', 'itemtype', 'itemid', 'contextid']);
 
         // Conditionally launch create table for exemption.
-        if ($dbman->table_exists($table)) {
-            $dbman->drop_table($table);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
         }
-        $dbman->create_table($table);
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2024081000.01);
+        upgrade_main_savepoint(true, 2024082300.01);
     }
 
     return true;

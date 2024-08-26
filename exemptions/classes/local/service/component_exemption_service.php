@@ -61,6 +61,86 @@ class component_exemption_service {
         $this->component = $component;
     }
 
+    /**
+     * Exempt an item defined by itemid/context, in the area defined by component/itemtype.
+     *
+     * @param string $itemtype the type of the item being exempt.
+     * @param int $itemid the id of the item which is to be exempt.
+     * @param int $contextid the context where the item is to be exempt.
+     * @param array $options optional parameters including 'reason', 'reasonformat', 'ordering', and 'usermodified'.
+     * @return exemption the exemption, once created.
+     * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
+     */
+    public function create_exemption(string $itemtype, int $itemid, int $contextid, array $options = []): exemption {
+        // Access: Any component can ask to exempt something, we can't verify access to that 'something' here though.
+
+        // Validate the component name.
+        if (!in_array($this->component, \core_component::get_component_names())) {
+            throw new \moodle_exception("Invalid component name '$this->component'");
+        }
+
+        // Extract optional parameters with defaults.
+        $reason = $options['reason'] ?? null;
+        $reasonformat = $options['reasonformat'] ?? null;
+        $ordering = $options['ordering'] ?? null;
+        $usermodified = $options['usermodified'] ?? null;
+
+        $exemption = new exemption($this->component, $itemtype, $itemid, $contextid, $reason, $reasonformat, $usermodified);
+        $exemption->ordering = $ordering > 0 ? $ordering : null;
+        return $this->repo->add($exemption);
+    }
+
+    /**
+     * Update an exemption item from an area and from within a context.
+     *
+     * @param exemption $exemption The exemption to update.
+     * @return exemption
+     */
+    public function update_exemption(exemption $exemption): exemption {
+        return $this->repo->update($exemption);
+    }
+
+    /**
+     * Delete an exemption item from an area and from within a context.
+     *
+     * @param string $itemtype the type of the exempt item.
+     * @param int $itemid the id of the item which was exempt (not the exemption's id).
+     * @param int $contextid the context of the item which was exempt.
+     * @throws \dml_exception if any database errors are encountered.
+     */
+    public function delete_exemption(string $itemtype, int $itemid, int $contextid) {
+        $params = [
+            'component' => $this->component,
+            'itemtype' => $itemtype,
+            'itemid' => $itemid,
+            'contextid' => $contextid,
+        ];
+
+        $this->repo->delete_by($params);
+    }
+
+    /**
+     * Delete an exemption by id.
+     *
+     * @param int $id the id of the exemption to delete.
+     */
+    public function delete_exemption_by_id(int $id) {
+        $this->repo->delete($id);
+    }
+
+    /**
+     * Find an exemption by id.
+     *
+     * @param int $id the id of the exemption to find.
+     * @return exemption|null
+     */
+    public function find_exemption_by_id(int $id): ?exemption {
+        try {
+            return $this->repo->find($id);
+        } catch (\dml_missing_record_exception $e) {
+            return null;
+        }
+    }
 
     /**
      * Delete a collection of exemptions by type and item, and optionally for a given context.
@@ -78,32 +158,40 @@ class component_exemption_service {
     }
 
     /**
-     * Exempt an item defined by itemid/context, in the area defined by component/itemtype.
+     * Find a list of exemptions, by type and item, and optionally for a given context.
      *
-     * @param string $itemtype the type of the item being exempt.
-     * @param int $itemid the id of the item which is to be exempt.
-     * @param \context $context the context in which the item is to be exempt.
-     * @param array $options optional parameters including 'reason', 'reasonformat', 'ordering', and 'usermodified'.
-     * @return exemption the exemption, once created.
+     * @param string $itemtype the type of the exempt item.
+     * @param int $itemid the id of the item which was exempt (not the exemption's id).
+     * @param \context|null $context the context of the item which was exempt.
+     *
+     * @return array the list of exemptions found.
      * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
      */
-    public function create_exemption(string $itemtype, int $itemid, \context $context, array $options = []): exemption {
-        // Access: Any component can ask to exempt something, we can't verify access to that 'something' here though.
+    public function find_exemptions_by_type_and_item(string $itemtype, int $itemid, ?\context $context = null): array {
+        $criteria = [
+            'component' => $this->component,
+            'itemtype' => $itemtype,
+            'itemid' => $itemid,
+        ];
 
-        // Validate the component name.
-        if (!in_array($this->component, \core_component::get_component_names())) {
-            throw new \moodle_exception("Invalid component name '$this->component'");
+        if ($context) {
+            $criteria['contextid'] = $context->id;
         }
 
-        // Extract optional parameters with defaults.
-        $reason = $options['reason'] ?? null;
-        $reasonformat = $options['reasonformat'] ?? null;
-        $ordering = $options['ordering'] ?? null;
-        $usermodified = $options['usermodified'] ?? null;
+        return $this->repo->find_by($criteria);
+    }
 
-        $exemption = new exemption($this->component, $itemtype, $itemid, $context->id, $reason, $reasonformat, $usermodified);
-        $exemption->ordering = $ordering > 0 ? $ordering : null;
-        return $this->repo->add($exemption);
+    /**
+     * Find a list of exemptions, by type and item, and optionally for a given context.
+     *
+     * @param array $options the options to filter the exemptions by, including 'itemtype', 'itemid' and 'contextid'.
+     *
+     * @return array the list of exemptions found.
+     * @throws \moodle_exception if the repository encounters any errors.
+     */
+    public function find_exemptions(array $options): array {
+        $options['component'] = $this->component;
+        return $this->repo->find_by($options);
     }
 
     /**
@@ -205,31 +293,6 @@ class component_exemption_service {
     }
 
     /**
-     * Delete an exemption item from an area and from within a context.
-     *
-     * E.g. delete an exemption course from the area 'core_course', 'course' with itemid 3 and from within the CONTEXT_USER context.
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param int $itemid the id of the item which was exempt (not the exemption's id).
-     * @param \context $context the context of the item which was exempt.
-     * @throws \moodle_exception if the user does not control the exemption, or it doesn't exist.
-     */
-    public function delete_exemption(string $itemtype, int $itemid, \context $context) {
-        if (!in_array($this->component, \core_component::get_component_names())) {
-            throw new \moodle_exception("Invalid component name '$this->component'");
-        }
-
-        // Business logic: check the user owns the exemption.
-        try {
-            $exemption = $this->repo->find_exemption($this->component, $itemtype, $itemid, $context->id);
-        } catch (\moodle_exception $e) {
-            throw new \moodle_exception("exemption does not exist for the user. Cannot delete.");
-        }
-
-        $this->repo->delete($exemption->id);
-    }
-
-    /**
      * Check whether an item has been marked as an exemption in the respective area.
      *
      * @param string $itemtype the type of the exempt item.
@@ -253,16 +316,16 @@ class component_exemption_service {
      *
      * @param string $itemtype the type of the exempt item.
      * @param int $itemid the id of the item which was exempt (not the exemption's id).
-     * @param \context $context the context of the item which was exempt.
+     * @param int $contextid the context id of the item which was exempt.
      * @return exemption|null
      */
-    public function get_exemption(string $itemtype, int $itemid, \context $context) {
+    public function get_exemption(string $itemtype, int $itemid, int $contextid) {
         try {
             return $this->repo->find_exemption(
                 $this->component,
                 $itemtype,
                 $itemid,
-                $context->id
+                $contextid
             );
         } catch (\dml_missing_record_exception $e) {
             return null;

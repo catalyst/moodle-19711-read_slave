@@ -124,12 +124,13 @@ class exemption_repository implements exemption_repository_interface {
      * @throws \moodle_exception if the exemption has missing or invalid properties.
      */
     public function add(exemption $exemption): exemption {
-        global $DB;
+        global $DB, $USER;
         $this->validate($exemption);
         $exemption = (array)$exemption;
         $time = time();
         $exemption['timecreated'] = $time;
         $exemption['timemodified'] = $time;
+        $exemption['usermodified'] = $USER->id;
         $id = $DB->insert_record($this->exemptiontable, $exemption);
         return $this->find($id);
     }
