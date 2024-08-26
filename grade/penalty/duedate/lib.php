@@ -61,6 +61,15 @@ function gradepenalty_duedate_extend_navigation_course(navigation_node $navigati
             $url, navigation_node::TYPE_SETTING,
             null, 'penaltyrule', new pix_icon('i/settings', ''));
         $navigation->add_node($settingsnode);
+
+        $url = new moodle_url('/grade/penalty/duedate/manage_exemptions.php', ['contextid' => $context->id]);
+        $settingsnode = navigation_node::create(get_string('manage_exemptions', 'gradepenalty_duedate'),
+            $url,
+            navigation_node::TYPE_SETTING,
+            null,
+            'exemptions',
+            new pix_icon('i/settings', ''));
+        $navigation->add_node($settingsnode);
     }
 }
 
@@ -93,6 +102,15 @@ function gradepenalty_duedate_extend_navigation_module(navigation_node $navigati
         $settingsnode = navigation_node::create(get_string('penaltyrule', 'gradepenalty_duedate'),
             $url, navigation_node::TYPE_SETTING,
             null, 'penaltyrule', new pix_icon('i/settings', ''));
+        $navigation->add_node($settingsnode);
+
+        $url = new moodle_url('/grade/penalty/duedate/manage_exemptions.php', ['contextid' => $context->id]);
+        $settingsnode = navigation_node::create(get_string('manage_exemptions', 'gradepenalty_duedate'),
+            $url,
+            navigation_node::TYPE_SETTING,
+            null,
+            'exemptions',
+            new pix_icon('i/settings', ''));
         $navigation->add_node($settingsnode);
     }
 }

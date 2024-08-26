@@ -26,6 +26,13 @@ use advanced_testcase;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class penalty_test_base extends advanced_testcase {
+    /**
+     * Set up.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+    }
 
     /**
      * Create sample rules.

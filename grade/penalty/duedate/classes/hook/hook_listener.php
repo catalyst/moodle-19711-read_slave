@@ -20,6 +20,7 @@ use context_course;
 use context_module;
 use context_system;
 use core_grades\hook\before_penalty_applied;
+use gradepenalty_duedate\exemption_helper;
 use gradepenalty_duedate\penalty_rule;
 use stdClass;
 
@@ -40,6 +41,11 @@ final class hook_listener {
     public static function apply_penalty(
         before_penalty_applied $hook
     ): void {
+        // Skip penalty application if the user is exempt.
+        if (exemption_helper::is_exempt($hook->userid, $hook->gradeitem->get_context()->id)) {
+            return;
+        }
+
         // Calculate the deducted grade based on the max grade.
         $cm = get_coursemodule_from_instance($hook->gradeitem->itemmodule, $hook->gradeitem->iteminstance);
         $deductedpercentage = self::calculate_penalty_percentage($cm, $hook->submissiondate, $hook->duedate);
