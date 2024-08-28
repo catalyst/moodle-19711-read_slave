@@ -4255,7 +4255,7 @@
         <INDEX NAME="indexprioritytimerequested" UNIQUE="false" FIELDS="indexpriority, timerequested"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="exemption" COMMENT="Stores the relationship between an arbitrary item (itemtype, itemid), and a context area (component, contextid) for a specific user. Used by the exemptions subsystem.">
+    <TABLE NAME="exemption" COMMENT="Stores the relationship between an arbitrary item (itemtype, itemid), and a context area (component, contextid). Used by the exemptions subsystem.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="component" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Defines the Moodle component in which the exemption was created."/>
