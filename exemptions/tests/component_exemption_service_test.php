@@ -215,6 +215,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         return $mockrepo;
     }
 
+    /**
+     * Test the constructor.
+     *
+     * @covers ::__construct
+     */
     public function test_constructor(): void {
         $repo = $this->get_mock_repository([]);
 
@@ -223,6 +228,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $service = new \core_exemptions\local\service\component_exemption_service('core_cccourse', $repo);
     }
 
+    /**
+     * Test the create method.
+     *
+     * @covers ::create
+     */
     public function test_create(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $repo = $this->get_mock_repository([]);
@@ -237,6 +247,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $service->create('course', $course1ctx->instanceid, $course1ctx->id);
     }
 
+    /**
+     * Test the find method.
+     *
+     * @covers ::find
+     */
     public function test_find(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $repo = $this->get_mock_repository([]);
@@ -251,6 +266,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $this->assertEquals($exem1->id, $found->id);
     }
 
+    /**
+     * Test the find_by method.
+     *
+     * @covers ::find_by
+     */
     public function test_findby(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $repo = $this->get_mock_repository([]);
@@ -276,6 +296,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $this->assertNull($found);
     }
 
+    /**
+     * Test the update method.
+     *
+     * @covers ::update
+     */
     public function test_update(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $repo = $this->get_mock_repository([]);
@@ -300,6 +325,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $this->assertEquals($newformat, $updated->reasonformat);
     }
 
+    /**
+     * Test the delete method.
+     *
+     * @covers ::delete
+     */
     public function test_delete(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $repo = $this->get_mock_repository([]);
@@ -318,6 +348,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $this->assertFalse($service->exists($itemtype, $itemid, $contextid));
     }
 
+    /**
+     * Test the delete_by method.
+     *
+     * @covers ::delete_by
+     */
     public function test_delete_by(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $service = service_factory::get_service_for_component('core_course');
@@ -344,6 +379,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $this->assertEquals(0, $service->count_by(['itemtype' => 'user']));
     }
 
+    /**
+     * Test the exists method.
+     *
+     * @covers ::exists
+     */
     public function test_exists(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $repo = $this->get_mock_repository([]);
@@ -358,6 +398,11 @@ final class component_exemption_service_test extends \advanced_testcase {
         $this->assertTrue($service->exists($itemtype, $itemid, $contextid));
     }
 
+    /**
+     * Test the count_by method.
+     *
+     * @covers ::count_by
+     */
     public function test_count_by(): void {
         [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
         $repo = $this->get_mock_repository([]);
