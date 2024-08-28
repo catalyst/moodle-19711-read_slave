@@ -112,6 +112,7 @@ class edit_penalty_form extends moodleform {
         // Action menu.
         $output = $PAGE->get_renderer('core');
         $menu = new action_menu();
+        $menu->set_kebab_trigger();
         // Add insert item.
         $menu->add(new action_menu_link(
             new \moodle_url('#'),
@@ -126,7 +127,7 @@ class edit_penalty_form extends moodleform {
             new pix_icon('i/trash', ''),
             get_string('delete'),
             false,
-            ['class' => 'deleterulebuttons alert-danger']
+            ['class' => 'deleterulebuttons text-danger']
         ));
         $actionmenu = $output->render($menu);
         $elements[] = $mform->createElement('static', 'name1', 'name2', $actionmenu);
