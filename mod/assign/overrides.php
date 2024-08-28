@@ -232,8 +232,11 @@ foreach ($overrides as $override) {
     // Delete.
     $deleteurlstr = $overridedeleteurl->out(true,
             array('id' => $override->id, 'sesskey' => sesskey()));
-    $iconstr .= '<a title="' . get_string('delete') . '" href="' . $deleteurlstr . '">' .
+    $iconstr .= '<a title="' . get_string('delete') . '" href="#" class="delete-override" data-url="' . $deleteurlstr . '">' .
                 $OUTPUT->pix_icon('t/delete', get_string('delete')) . '</a> ';
+
+    // Add js script for "override delete" button.
+    $PAGE->requires->js_call_amd('mod_assign/override_delete_modal', 'init');
 
     if ($groupmode) {
         $usergroupstr = '<a href="' . $groupurl->out(true, ['group' => $override->groupid]) . '" >' .
