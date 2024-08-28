@@ -47,6 +47,132 @@ class component_exemption_service {
     protected $component;
 
     /**
+     * Create a new exemption.
+     *
+     * @param string $itemtype The type of the item being exempt.
+     * @param int $itemid The id of the item which is to be exempt.
+     * @param int $contextid The context of the item which is to be exempt.
+     * @param string|null $reason The reason for the exemption.
+     * @param int|null $reasonformat The format of the reason for the exemption.
+     * @return exemption The exemption, once created.
+     */
+    public function create(string $itemtype, int $itemid, int $contextid, string $reason = null, int $reasonformat = null): exemption {
+        $exemption = new exemption($this->component, $itemtype, $itemid, $contextid, $reason, $reasonformat);
+        return $this->repo->add($exemption);
+    }
+
+    /**
+     * Find an exemption.
+     *
+     * @param string $itemtype The type of the exempt item.
+     * @param int $itemid The id of the exempt item.
+     * @param int $contextid The context of the exempt item.
+     *
+     * @return exemption|null
+     */
+    public function find(string $itemtype, int $itemid, int $contextid) {
+        try {
+            return $this->repo->find_exemption($this->component, $itemtype, $itemid, $contextid);
+        } catch (\dml_missing_record_exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Find exemptions by a set of criteria.
+     * Returns an array of exemptions if multiple matches are found, a single exemption object if exactly one match is found, or null if no matches are found.
+     *
+     * @param array $options The criteria to find by.
+     *
+     * @return array|exemption|null
+     */
+    public function find_by(array $options): array|exemption|null {
+        $options['component'] = $this->component;
+        $found = $this->repo->find_by($options);
+
+        if (empty($found)) {
+            return null;
+        }
+
+        return (count($found) === 1) ? reset($found) : $found;
+    }
+
+    /**
+     * Update an exemption.
+     *
+     * @param exemption $exemption the exemption to update.
+     * @return exemption the updated exemption.
+     */
+    public function update(exemption $exemption): exemption {
+        return $this->repo->update($exemption);
+    }
+
+    /**
+     * Delete an exemption.
+     *
+     * @param string $itemtype the type of the exempt item.
+     * @param int $itemid the id of the exempt item.
+     * @param int $contextid the context of the exempt item.
+     */
+    public function delete(string $itemtype, int $itemid, int $contextid) {
+        $this->repo->delete_by(
+            [
+                'component' => $this->component,
+                'itemtype' => $itemtype,
+                'itemid' => $itemid,
+                'contextid' => $contextid,
+            ]
+        );
+    }
+
+    /**
+     * Delete an exemption by a set of criteria.
+     *
+     * @param array $options the criteria to delete by.
+     * @throws \moodle_exception if the provided delete options are invalid.
+     */
+    public function delete_by(array $options): void {
+        // Prevent accidental deletion of all exemptions.
+        if (empty($options['id']) && empty($options['itemtype']) && empty($options['contextid'])) {
+            throw new \moodle_exception('Delete options must at least specify id, itemtype, or contextid');
+        }
+
+        $options['component'] = $this->component;
+        $this->repo->delete_by($options);
+    }
+
+    /**
+     * Check if an exemption exists.
+     *
+     * @param string $itemtype the type of the exempt item.
+     * @param int $itemid the id of the exempt item.
+     * @param int $contextid the context of the exempt item.
+     *
+     * @return bool
+     */
+    public function exists(string $itemtype, int $itemid, int $contextid): bool {
+        return $this->repo->exists_by(
+            [
+                'component' => $this->component,
+                'itemtype' => $itemtype,
+                'itemid' => $itemid,
+                'contextid' => $contextid,
+            ]
+        );
+    }
+
+    /**
+     * Count the number of exemptions.
+     *
+     * @param array $options the criteria to find by.
+     * @return int
+     */
+    public function count_by(array $options): int {
+        $options['component'] = $this->component;
+        return $this->repo->count_by($options);
+    }
+
+    /**
      * The component_exemption_service constructor.
      *
      * @param string $component The frankenstyle name of the component to which this service operations are scoped.
@@ -61,294 +187,297 @@ class component_exemption_service {
         $this->component = $component;
     }
 
-    /**
-     * Exempt an item defined by itemid/context, in the area defined by component/itemtype.
-     *
-     * @param string $itemtype the type of the item being exempt.
-     * @param int $itemid the id of the item which is to be exempt.
-     * @param int $contextid the context where the item is to be exempt.
-     * @param array $options optional parameters including 'reason', 'reasonformat', 'ordering', and 'usermodified'.
-     * @return exemption the exemption, once created.
-     * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
-     */
-    public function create_exemption(string $itemtype, int $itemid, int $contextid, array $options = []): exemption {
-        // Access: Any component can ask to exempt something, we can't verify access to that 'something' here though.
+    // /**
+    //  * Exempt an item defined by itemid/context, in the area defined by component/itemtype.
+    //  *
+    //  * @param string $itemtype the type of the item being exempt.
+    //  * @param int $itemid the id of the item which is to be exempt.
+    //  * @param int $contextid the context where the item is to be exempt.
+    //  * @param array $options optional parameters including 'reason', 'reasonformat', 'ORDERing', and 'usermodified'.
+    //  * @return exemption the exemption, once created.
+    //  * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
+    //  */
+    // public function create_exemption(string $itemtype, int $itemid, int $contextid, array $options = []): exemption {
+    //     // Access: Any component can ask to exempt something, we can't verify access to that 'something' here though.
 
-        // Validate the component name.
-        if (!in_array($this->component, \core_component::get_component_names())) {
-            throw new \moodle_exception("Invalid component name '$this->component'");
-        }
+    //     // Validate the component name.
+    //     if (!in_array($this->component, \core_component::get_component_names())) {
+    //         throw new \moodle_exception("Invalid component name '$this->component'");
+    //     }
 
-        // Extract optional parameters with defaults.
-        $reason = $options['reason'] ?? null;
-        $reasonformat = $options['reasonformat'] ?? null;
-        $ordering = $options['ordering'] ?? null;
-        $usermodified = $options['usermodified'] ?? null;
+    //     // Extract optional parameters with defaults.
+    //     $reason = $options['reason'] ?? null;
+    //     $reasonformat = $options['reasonformat'] ?? null;
+    //     $ORDERing = $options['ORDERing'] ?? null;
+    //     $usermodified = $options['usermodified'] ?? null;
 
-        $exemption = new exemption($this->component, $itemtype, $itemid, $contextid, $reason, $reasonformat, $usermodified);
-        $exemption->ordering = $ordering > 0 ? $ordering : null;
-        return $this->repo->add($exemption);
-    }
+    //     $exemption = new exemption($this->component, $itemtype, $itemid, $contextid, $reason, $reasonformat, $usermodified);
+    //     $exemption->ORDERing = $ORDERing > 0 ? $ORDERing : null;
+    //     return $this->repo->add($exemption);
+    // }
 
-    /**
-     * Update an exemption item from an area and from within a context.
-     *
-     * @param exemption $exemption The exemption to update.
-     * @return exemption
-     */
-    public function update_exemption(exemption $exemption): exemption {
-        return $this->repo->update($exemption);
-    }
+    // /**
+    //  * Update an exemption item from an area and from within a context.
+    //  *
+    //  * @param exemption $exemption The exemption to update.
+    //  * @return exemption
+    //  */
+    // public function update_exemption(exemption $exemption): exemption {
+    //     return $this->repo->update($exemption);
+    // }
 
-    /**
-     * Delete an exemption item from an area and from within a context.
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param int $itemid the id of the item which was exempt (not the exemption's id).
-     * @param int $contextid the context of the item which was exempt.
-     * @throws \dml_exception if any database errors are encountered.
-     */
-    public function delete_exemption(string $itemtype, int $itemid, int $contextid) {
-        $params = [
-            'component' => $this->component,
-            'itemtype' => $itemtype,
-            'itemid' => $itemid,
-            'contextid' => $contextid,
-        ];
+    // /**
+    //  * Delete an exemption item from an area and from within a context.
+    //  *
+    //  * @param string $itemtype the type of the exempt item.
+    //  * @param int $itemid the id of the item which was exempt (not the exemption's id).
+    //  * @param int $contextid the context of the item which was exempt.
+    //  * @throws \dml_exception if any database errors are encountered.
+    //  */
+    // public function delete_exemption(string $itemtype, int $itemid, int $contextid) {
+    //     $params = [
+    //         'component' => $this->component,
+    //         'itemtype' => $itemtype,
+    //         'itemid' => $itemid,
+    //         'contextid' => $contextid,
+    //     ];
 
-        $this->repo->delete_by($params);
-    }
+    //     $this->repo->delete_by($params);
+    // }
 
-    /**
-     * Delete an exemption by id.
-     *
-     * @param int $id the id of the exemption to delete.
-     */
-    public function delete_exemption_by_id(int $id) {
-        $this->repo->delete($id);
-    }
+    // /**
+    //  * Delete an exemption by id.
+    //  *
+    //  * @param int $id the id of the exemption to delete.
+    //  */
+    // public function delete_exemption_by_id(int $id) {
+    //     $this->repo->delete($id);
+    // }
 
-    /**
-     * Find an exemption by id.
-     *
-     * @param int $id the id of the exemption to find.
-     * @return exemption|null
-     */
-    public function find_exemption_by_id(int $id): ?exemption {
-        try {
-            return $this->repo->find($id);
-        } catch (\dml_missing_record_exception $e) {
-            return null;
-        }
-    }
+    // /**
+    //  * Find a list of exemptions.
+    //  *
+    //  * @param array $options the options to filter the exemptions by, including 'itemtype', 'itemid' and 'contextid'.
+    //  * @param int $limitfrom optional pagination control for returning a subset of records, starting at this point.
+    //  * @param int $limitnum optional pagination control for returning a subset comprising this many records.
+    //  *
+    //  * @return array the list of exemptions found.
+    //  * @throws \moodle_exception if the repository encounters any errors.
+    //  */
+    // public function find_exemptions(array $options, int $limitfrom = 0, int $limitnum = 0): array {
+    //     $options['component'] = $this->component;
+    //     return $this->repo->find_by($options);
+    // }
 
-    /**
-     * Delete a collection of exemptions by type and item, and optionally for a given context.
-     *
-     * E.g. delete all exemptions of type 'message_conversations' for the conversation '11' and in the CONTEXT_COURSE context.
-     *
-     * @param string $itemtype the type of the exempt items.
-     * @param int $itemid the id of the item to which the exemptions relate
-     * @param \context|null $context the context of the items which were exempt.
-     */
-    public function delete_exemptions_by_type_and_item(string $itemtype, int $itemid, ?\context $context = null) {
-        $criteria = ['component' => $this->component, 'itemtype' => $itemtype, 'itemid' => $itemid] +
-            ($context ? ['contextid' => $context->id] : []);
-        $this->repo->delete_by($criteria);
-    }
+    // /**
+    //  * Find an exemption by id.
+    //  *
+    //  * @param int $id the id of the exemption to find.
+    //  * @return exemption|null
+    //  */
+    // public function find_exemption_by_id(int $id): ?exemption {
+    //     try {
+    //         return $this->repo->find($id);
+    //     } catch (\dml_missing_record_exception $e) {
+    //         return null;
+    //     }
+    // }
 
-    /**
-     * Find a list of exemptions, by type and item, and optionally for a given context.
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param int $itemid the id of the item which was exempt (not the exemption's id).
-     * @param \context|null $context the context of the item which was exempt.
-     *
-     * @return array the list of exemptions found.
-     * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
-     */
-    public function find_exemptions_by_type_and_item(string $itemtype, int $itemid, ?\context $context = null): array {
-        $criteria = [
-            'component' => $this->component,
-            'itemtype' => $itemtype,
-            'itemid' => $itemid,
-        ];
+    // /**
+    //  * Delete a collection of exemptions by type and item, and optionally for a given context.
+    //  *
+    //  * E.g. delete all exemptions of type 'message_conversations' for the conversation '11' and in the CONTEXT_COURSE context.
+    //  *
+    //  * @param string $itemtype the type of the exempt items.
+    //  * @param int $itemid the id of the item to which the exemptions relate
+    //  * @param \context|null $context the context of the items which were exempt.
+    //  */
+    // public function delete_exemptions_by_type_and_item(string $itemtype, int $itemid, ?\context $context = null) {
+    //     $criteria = ['component' => $this->component, 'itemtype' => $itemtype, 'itemid' => $itemid] +
+    //         ($context ? ['contextid' => $context->id] : []);
+    //     $this->repo->delete_by($criteria);
+    // }
 
-        if ($context) {
-            $criteria['contextid'] = $context->id;
-        }
+    // /**
+    //  * Find a list of exemptions, by type and item, and optionally for a given context.
+    //  *
+    //  * @param string $itemtype the type of the exempt item.
+    //  * @param int $itemid the id of the item which was exempt (not the exemption's id).
+    //  * @param \context|null $context the context of the item which was exempt.
+    //  *
+    //  * @return array the list of exemptions found.
+    //  * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
+    //  */
+    // public function find_exemptions_by_type_and_item(string $itemtype, int $itemid, ?\context $context = null): array {
+    //     $criteria = [
+    //         'component' => $this->component,
+    //         'itemtype' => $itemtype,
+    //         'itemid' => $itemid,
+    //     ];
 
-        return $this->repo->find_by($criteria);
-    }
+    //     if ($context) {
+    //         $criteria['contextid'] = $context->id;
+    //     }
 
-    /**
-     * Find a list of exemptions, by type and item, and optionally for a given context.
-     *
-     * @param array $options the options to filter the exemptions by, including 'itemtype', 'itemid' and 'contextid'.
-     *
-     * @return array the list of exemptions found.
-     * @throws \moodle_exception if the repository encounters any errors.
-     */
-    public function find_exemptions(array $options): array {
-        $options['component'] = $this->component;
-        return $this->repo->find_by($options);
-    }
+    //     return $this->repo->find_by($criteria);
+    // }
 
-    /**
-     * Find a list of exemptions, by type, where type is the component/itemtype pair.
-     *
-     * E.g. "Find all exemption courses" might result in:
-     * $exemcourses = find_exemptions_by_type('core_course', 'course');
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param int $limitfrom optional pagination control for returning a subset of records, starting at this point.
-     * @param int $limitnum optional pagination control for returning a subset comprising this many records.
-     * @return array the list of exemptions found.
-     * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
-     */
-    public function find_exemptions_by_type(string $itemtype, int $limitfrom = 0, int $limitnum = 0): array {
-        if (!in_array($this->component, \core_component::get_component_names())) {
-            throw new \moodle_exception("Invalid component name '$this->component'");
-        }
-        return $this->repo->find_by(
-            [
-                'component' => $this->component,
-                'itemtype' => $itemtype,
-            ],
-            $limitfrom,
-            $limitnum
-        );
-    }
 
-    /**
-     * Find a list of exemptions, by multiple types within a component.
-     *
-     * E.g. "Find all exemptions in the activity chooser" might result in:
-     * $exemcourses = find_all_exemptions('core_course', ['contentitem_mod_assign');
-     *
-     * @param array $itemtypes optional the type of the exempt item.
-     * @param int $limitfrom optional pagination control for returning a subset of records, starting at this point.
-     * @param int $limitnum optional pagination control for returning a subset comprising this many records.
-     * @return array the list of exemptions found.
-     * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
-     */
-    public function find_all_exemptions(array $itemtypes = [], int $limitfrom = 0, int $limitnum = 0): array {
-        if (!in_array($this->component, \core_component::get_component_names())) {
-            throw new \moodle_exception("Invalid component name '$this->component'");
-        }
-        $params = [
-            'component' => $this->component,
-        ];
-        if ($itemtypes) {
-            $params['itemtype'] = $itemtypes;
-        }
+    // /**
+    //  * Find a list of exemptions, by type, where type is the component/itemtype pair.
+    //  *
+    //  * E.g. "Find all exemption courses" might result in:
+    //  * $exemcourses = find_exemptions_by_type('core_course', 'course');
+    //  *
+    //  * @param string $itemtype the type of the exempt item.
+    //  * @param int $limitfrom optional pagination control for returning a subset of records, starting at this point.
+    //  * @param int $limitnum optional pagination control for returning a subset comprising this many records.
+    //  * @return array the list of exemptions found.
+    //  * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
+    //  */
+    // public function find_exemptions_by_type(string $itemtype, int $limitfrom = 0, int $limitnum = 0): array {
+    //     if (!in_array($this->component, \core_component::get_component_names())) {
+    //         throw new \moodle_exception("Invalid component name '$this->component'");
+    //     }
+    //     return $this->repo->find_by(
+    //         [
+    //             'component' => $this->component,
+    //             'itemtype' => $itemtype,
+    //         ],
+    //         $limitfrom,
+    //         $limitnum
+    //     );
+    // }
 
-        return $this->repo->find_by(
-            $params,
-            $limitfrom,
-            $limitnum
-        );
-    }
+    // /**
+    //  * Find a list of exemptions, by multiple types within a component.
+    //  *
+    //  * E.g. "Find all exemptions in the activity chooser" might result in:
+    //  * $exemcourses = find_all_exemptions('core_course', ['contentitem_mod_assign');
+    //  *
+    //  * @param array $itemtypes optional the type of the exempt item.
+    //  * @param int $limitfrom optional pagination control for returning a subset of records, starting at this point.
+    //  * @param int $limitnum optional pagination control for returning a subset comprising this many records.
+    //  * @return array the list of exemptions found.
+    //  * @throws \moodle_exception if the component name is invalid, or if the repository encounters any errors.
+    //  */
+    // public function find_all_exemptions(array $itemtypes = [], int $limitfrom = 0, int $limitnum = 0): array {
+    //     if (!in_array($this->component, \core_component::get_component_names())) {
+    //         throw new \moodle_exception("Invalid component name '$this->component'");
+    //     }
+    //     $params = [
+    //         'component' => $this->component,
+    //     ];
+    //     if ($itemtypes) {
+    //         $params['itemtype'] = $itemtypes;
+    //     }
 
-    /**
-     * Returns the SQL required to include exemption information for a given component/itemtype combination.
-     *
-     * Generally, find_exemptions_by_type() is the recommended way to fetch exemptions.
-     *
-     * This method is used to include exemption information in external queries, for items identified by their
-     * component and itemtype, matching itemid to the $joinitemid, and for the user to which this service is scoped.
-     *
-     * It uses a LEFT JOIN to preserve the original records. If you wish to restrict your records, please consider using a
-     * "WHERE {$tablealias}.id IS NOT NULL" in your query.
-     *
-     * Example usage:
-     *
-     * list($sql, $params) = $service->get_join_sql_by_type('core_message', 'message_conversations', 'myexemptiontablealias',
-     *                                                      'conv.id');
-     * Results in $sql:
-     *     "LEFT JOIN {exemption} exem
-     *             ON exem.component = :exemptioncomponent
-     *            AND exem.itemtype = :exemptionitemtype
-     *            AND exem.itemid = conv.id"
-     * and $params:
-     *     ['exemptioncomponent' => 'core_message', 'exemptionitemtype' => 'message_conversations']
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param string $tablealias the desired alias for the exemptions table.
-     * @param string $joinitemid the table and column identifier which the itemid is joined to. E.g. conversation.id.
-     * @return array the list of sql and params, in the format [$sql, $params].
-     */
-    public function get_join_sql_by_type(string $itemtype, string $tablealias, string $joinitemid): array {
-        $sql = " LEFT JOIN {exemption} {$tablealias}
-                            ON {$tablealias}.component = :exemptioncomponent
-                           AND {$tablealias}.itemtype = :exemptionitemtype
-                           AND {$tablealias}.itemid = {$joinitemid} ";
+    //     return $this->repo->find_by(
+    //         $params,
+    //         $limitfrom,
+    //         $limitnum
+    //     );
+    // }
 
-        $params = [
-            'exemptioncomponent' => $this->component,
-            'exemptionitemtype' => $itemtype,
-        ];
+    // /**
+    //  * Returns the SQL required to include exemption information for a given component/itemtype combination.
+    //  *
+    //  * Generally, find_exemptions_by_type() is the recommended way to fetch exemptions.
+    //  *
+    //  * This method is used to include exemption information in external queries, for items identified by their
+    //  * component and itemtype, matching itemid to the $joinitemid, and for the user to which this service is scoped.
+    //  *
+    //  * It uses a LEFT JOIN to preserve the original records. If you wish to restrict your records, please consider using a
+    //  * "WHERE {$tablealias}.id IS NOT NULL" in your query.
+    //  *
+    //  * Example usage:
+    //  *
+    //  * list($sql, $params) = $service->get_join_sql_by_type('core_message', 'message_conversations', 'myexemptiontablealias',
+    //  *                                                      'conv.id');
+    //  * Results in $sql:
+    //  *     "LEFT JOIN {exemption} exem
+    //  *             ON exem.component = :exemptioncomponent
+    //  *            AND exem.itemtype = :exemptionitemtype
+    //  *            AND exem.itemid = conv.id"
+    //  * and $params:
+    //  *     ['exemptioncomponent' => 'core_message', 'exemptionitemtype' => 'message_conversations']
+    //  *
+    //  * @param string $itemtype the type of the exempt item.
+    //  * @param string $tablealias the desired alias for the exemptions table.
+    //  * @param string $joinitemid the table and column identifier which the itemid is joined to. E.g. conversation.id.
+    //  * @return array the list of sql and params, in the format [$sql, $params].
+    //  */
+    // public function get_join_sql_by_type(string $itemtype, string $tablealias, string $joinitemid): array {
+    //     $sql = " LEFT JOIN {exemption} {$tablealias}
+    //                         ON {$tablealias}.component = :exemptioncomponent
+    //                        AND {$tablealias}.itemtype = :exemptionitemtype
+    //                        AND {$tablealias}.itemid = {$joinitemid} ";
 
-        return [$sql, $params];
-    }
+    //     $params = [
+    //         'exemptioncomponent' => $this->component,
+    //         'exemptionitemtype' => $itemtype,
+    //     ];
 
-    /**
-     * Check whether an item has been marked as an exemption in the respective area.
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param int $itemid the id of the item which was exempt (not the exemption's id).
-     * @param \context $context the context of the item which was exempt.
-     * @return bool true if the item is exempt, false otherwise.
-     */
-    public function exemption_exists(string $itemtype, int $itemid, \context $context): bool {
-        return $this->repo->exists_by(
-            [
-                'component' => $this->component,
-                'itemtype' => $itemtype,
-                'itemid' => $itemid,
-                'contextid' => $context->id,
-            ]
-        );
-    }
+    //     return [$sql, $params];
+    // }
 
-    /**
-     * Get the exemption.
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param int $itemid the id of the item which was exempt (not the exemption's id).
-     * @param int $contextid the context id of the item which was exempt.
-     * @return exemption|null
-     */
-    public function get_exemption(string $itemtype, int $itemid, int $contextid) {
-        try {
-            return $this->repo->find_exemption(
-                $this->component,
-                $itemtype,
-                $itemid,
-                $contextid
-            );
-        } catch (\dml_missing_record_exception $e) {
-            return null;
-        }
-    }
+    // /**
+    //  * Check whether an item has been marked as an exemption in the respective area.
+    //  *
+    //  * @param string $itemtype the type of the exempt item.
+    //  * @param int $itemid the id of the item which was exempt (not the exemption's id).
+    //  * @param \context $context the context of the item which was exempt.
+    //  * @return bool true if the item is exempt, false otherwise.
+    //  */
+    // public function exemption_exists(string $itemtype, int $itemid, \context $context): bool {
+    //     return $this->repo->exists_by(
+    //         [
+    //             'component' => $this->component,
+    //             'itemtype' => $itemtype,
+    //             'itemid' => $itemid,
+    //             'contextid' => $context->id,
+    //         ]
+    //     );
+    // }
 
-    /**
-     * Count the exemption by item type.
-     *
-     * @param string $itemtype the type of the exempt item.
-     * @param \context|null $context the context of the item which was exempt.
-     * @return int
-     */
-    public function count_exemptions_by_type(string $itemtype, ?\context $context = null) {
-        $criteria = [
-            'component' => $this->component,
-            'itemtype' => $itemtype,
-        ];
+    // /**
+    //  * Get the exemption.
+    //  *
+    //  * @param string $itemtype the type of the exempt item.
+    //  * @param int $itemid the id of the item which was exempt (not the exemption's id).
+    //  * @param int $contextid the context id of the item which was exempt.
+    //  * @return exemption|null
+    //  */
+    // public function get_exemption(string $itemtype, int $itemid, int $contextid) {
+    //     try {
+    //         return $this->repo->find_exemption(
+    //             $this->component,
+    //             $itemtype,
+    //             $itemid,
+    //             $contextid
+    //         );
+    //     } catch (\dml_missing_record_exception $e) {
+    //         return null;
+    //     }
+    // }
 
-        if ($context) {
-            $criteria['contextid'] = $context->id;
-        }
+    // /**
+    //  * Count the exemption by item type.
+    //  *
+    //  * @param string $itemtype the type of the exempt item.
+    //  * @param \context|null $context the context of the item which was exempt.
+    //  * @return int
+    //  */
+    // public function count_exemptions_by_type(string $itemtype, ?\context $context = null) {
+    //     $criteria = [
+    //         'component' => $this->component,
+    //         'itemtype' => $itemtype,
+    //     ];
 
-        return $this->repo->count_by($criteria);
-    }
+    //     if ($context) {
+    //         $criteria['contextid'] = $context->id;
+    //     }
+
+    //     return $this->repo->count_by($criteria);
+    // }
 }
