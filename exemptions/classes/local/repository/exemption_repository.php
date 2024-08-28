@@ -49,12 +49,11 @@ class exemption_repository implements exemption_repository_interface {
             $record->contextid,
             $record->reason,
             $record->reasonformat,
-            $record->usermodified
         );
         $exemption->id = $record->id;
-        $exemption->ordering = $record->ordering ?? null;
         $exemption->timecreated = $record->timecreated ?? null;
         $exemption->timemodified = $record->timemodified ?? null;
+        $exemption->usermodified = $record->usermodified ?? null;
 
         return $exemption;
     }
@@ -91,7 +90,6 @@ class exemption_repository implements exemption_repository_interface {
             'itemtype' => true,
             'itemid' => true,
             'contextid' => true,
-            'ordering' => false,
             'timecreated' => false,
             'timemodified' => false,
             'usermodified' => false,
@@ -124,12 +122,13 @@ class exemption_repository implements exemption_repository_interface {
      * @throws \moodle_exception if the exemption has missing or invalid properties.
      */
     public function add(exemption $exemption): exemption {
-        global $DB;
+        global $DB, $USER;
         $this->validate($exemption);
         $exemption = (array)$exemption;
         $time = time();
         $exemption['timecreated'] = $time;
         $exemption['timemodified'] = $time;
+        $exemption['usermodified'] = $USER->id;
         $id = $DB->insert_record($this->exemptiontable, $exemption);
         return $this->find($id);
     }
@@ -143,13 +142,14 @@ class exemption_repository implements exemption_repository_interface {
      * @throws \moodle_exception if any of the exemptions have missing or invalid properties.
      */
     public function add_all(array $exemptions): array {
-        global $DB;
+        global $DB, $USER;
         $time = time();
         foreach ($exemptions as $item) {
             $this->validate($item);
             $exemption = (array)$item;
             $exemption['timecreated'] = $time;
             $exemption['timemodified'] = $time;
+            $exemption['usermodified'] = $USER->id;
             $ids[] = $DB->insert_record($this->exemptiontable, $exemption);
         }
         list($insql, $params) = $DB->get_in_or_equal($ids);
@@ -297,7 +297,20 @@ class exemption_repository implements exemption_repository_interface {
      */
     public function delete_by(array $criteria) {
         global $DB;
-        $DB->delete_records($this->exemptiontable, $criteria);
+        $conditions = [];
+        $params = [];
+        foreach ($criteria as $field => $value) {
+            if (is_array($value) && count($value)) {
+                list($insql, $inparams) = $DB->get_in_or_equal($value, SQL_PARAMS_NAMED);
+                $conditions[] = "$field $insql";
+                $params = array_merge($params, $inparams);
+            } else {
+                $conditions[] = "$field = :$field";
+                $params = array_merge($params, [$field => $value]);
+            }
+        }
+
+        $DB->delete_records_select($this->exemptiontable, implode(' AND ', $conditions), $params);
     }
 
     /**

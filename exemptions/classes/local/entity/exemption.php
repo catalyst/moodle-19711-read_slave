@@ -40,9 +40,6 @@ class exemption {
     /** @var int $contextid the id of the context in which this exemption was created.*/
     public $contextid;
 
-    /** @var int $ordering the ordering of the exemption within it's exemption area.*/
-    public $ordering;
-
     /** @var int $timecreated the time at which the exemption was created.*/
     public $timecreated;
 
@@ -70,17 +67,14 @@ class exemption {
      * @param int $contextid the id of the context in which this exemption was created.
      * @param string|null $reason the reason for the exemption.
      * @param int|null $reasonformat the format of the reason for the exemption.
-     * @param int|null $usermodified the id of the user who created the exemption.
      */
     public function __construct(string $component, string $itemtype, int $itemid, int $contextid,
-        ?string $reason = null, ?int $reasonformat = null, ?int $usermodified = null) {
-        global $USER;
+        ?string $reason = null, ?int $reasonformat = null) {
         $this->component = $component;
         $this->itemtype = $itemtype;
         $this->itemid = $itemid;
         $this->contextid = $contextid;
         $this->reason = $reason;
         $this->reasonformat = $reasonformat;
-        $this->usermodified = $usermodified ?? $USER->id;
     }
 }

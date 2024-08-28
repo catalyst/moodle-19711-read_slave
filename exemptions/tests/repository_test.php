@@ -44,14 +44,14 @@ final class repository_test extends \advanced_testcase {
      */
     protected function setup_users_and_courses() {
         $user1 = self::getDataGenerator()->create_user();
-        $user1context = \context_user::instance($user1->id);
+        $user1ctx = \context_user::instance($user1->id);
         $user2 = self::getDataGenerator()->create_user();
-        $user2context = \context_user::instance($user2->id);
+        $user2ctx = \context_user::instance($user2->id);
         $course1 = self::getDataGenerator()->create_course();
         $course2 = self::getDataGenerator()->create_course();
-        $course1context = \context_course::instance($course1->id);
-        $course2context = \context_course::instance($course2->id);
-        return [$user1context, $user2context, $course1context, $course2context];
+        $course1ctx = \context_course::instance($course1->id);
+        $course2ctx = \context_course::instance($course2->id);
+        return [$user1ctx, $user2ctx, $course1ctx, $course2ctx];
     }
 
     /**
@@ -60,7 +60,7 @@ final class repository_test extends \advanced_testcase {
      * @covers ::add
      */
     public function test_add(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt a course.
         $exemptionsrepo = new exemption_repository();
@@ -68,8 +68,8 @@ final class repository_test extends \advanced_testcase {
         $exemcourse = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
             'Hello, world!',
             FORMAT_PLAIN
         );
@@ -85,7 +85,6 @@ final class repository_test extends \advanced_testcase {
         $this->assertEquals(FORMAT_PLAIN, $exemption->reasonformat);
 
         // Verify the returned object has additional properties, created as part of the add.
-        $this->assertObjectHasProperty('ordering', $exemption);
         $this->assertObjectHasProperty('timecreated', $exemption);
         $this->assertGreaterThanOrEqual($timenow, $exemption->timecreated);
         $this->assertObjectHasProperty('timemodified', $exemption);
@@ -103,7 +102,7 @@ final class repository_test extends \advanced_testcase {
      * @covers ::add
      */
     public function test_add_incomplete_exemption(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and try to exempt a course.
         $exemptionsrepo = new exemption_repository();
@@ -111,10 +110,10 @@ final class repository_test extends \advanced_testcase {
         $exemcourse = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
-        unset($exemcourse->usermodified);
+        unset($exemcourse->component);
 
         $this->expectException('moodle_exception');
         $exemptionsrepo->add($exemcourse);
@@ -126,7 +125,7 @@ final class repository_test extends \advanced_testcase {
      * @covers ::add_all
      */
     public function test_add_all_basic(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt several courses.
         $exemptionsrepo = new exemption_repository();
@@ -135,14 +134,14 @@ final class repository_test extends \advanced_testcase {
         $exemcourses[] = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemcourses[] = new exemption(
             'core_course',
             'course',
-            $course2context->instanceid,
-            $course2context->id,
+            $course2ctx->instanceid,
+            $course2ctx->id,
         );
 
         $timenow = time(); // Reference only, to check that the created item has a time equal to or greater than this.
@@ -157,7 +156,6 @@ final class repository_test extends \advanced_testcase {
             $this->assertEquals('course', $exemption->itemtype);
 
             // Verify the returned object has additional properties, created as part of the add.
-            $this->assertObjectHasProperty('ordering', $exemption);
             $this->assertObjectHasProperty('timecreated', $exemption);
             $this->assertGreaterThanOrEqual($timenow, $exemption->timecreated);
             $this->assertObjectHasProperty('timemodified', $exemption);
@@ -178,15 +176,15 @@ final class repository_test extends \advanced_testcase {
      * @covers ::find
      */
     public function test_find(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt a course.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption = $exemptionsrepo->add($exemption);
 
@@ -207,7 +205,7 @@ final class repository_test extends \advanced_testcase {
      * @covers ::find_all
      */
     public function test_find_all(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         $exemptionsrepo = new exemption_repository();
 
@@ -218,14 +216,14 @@ final class repository_test extends \advanced_testcase {
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption2 = new exemption(
             'core_course',
             'course',
-            $course2context->instanceid,
-            $course2context->id,
+            $course2ctx->instanceid,
+            $course2ctx->id,
         );
         $exemptionsrepo->add($exemption);
         $exemptionsrepo->add($exemption2);
@@ -246,7 +244,7 @@ final class repository_test extends \advanced_testcase {
      * @covers ::find_all
      */
     public function test_find_all_pagination(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         $exemptionsrepo = new exemption_repository();
 
@@ -259,7 +257,7 @@ final class repository_test extends \advanced_testcase {
                 'core_course',
                 'course',
                 $i,
-                $course1context->id,
+                $course1ctx->id,
             );
             $exemptionsrepo->add($exemption);
         }
@@ -286,15 +284,15 @@ final class repository_test extends \advanced_testcase {
      * @covers ::find_by
      */
     public function test_find_by(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt a course.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemptionsrepo->add($exemption);
 
@@ -302,8 +300,8 @@ final class repository_test extends \advanced_testcase {
         $exemption = new exemption(
             'core_course',
             'course_item',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemptionsrepo->add($exemption);
 
@@ -334,7 +332,7 @@ final class repository_test extends \advanced_testcase {
      * @covers ::find_by
      */
     public function test_find_by_pagination(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         $exemptionsrepo = new exemption_repository();
 
@@ -347,7 +345,7 @@ final class repository_test extends \advanced_testcase {
                 'core_course',
                 'course',
                 $i,
-                $course1context->id,
+                $course1ctx->id,
             );
             $exemptionsrepo->add($exemption);
         }
@@ -378,21 +376,21 @@ final class repository_test extends \advanced_testcase {
      * @covers ::count_by
      */
     public function test_count_by(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and add 2 exemptions in different areas.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption2 = new exemption(
             'core_course',
             'anothertype',
-            $course2context->instanceid,
-            $course2context->id,
+            $course2ctx->instanceid,
+            $course2ctx->id,
         );
         $exemptionsrepo->add($exemption);
         $exemptionsrepo->add($exemption2);
@@ -409,15 +407,15 @@ final class repository_test extends \advanced_testcase {
      * @covers ::exists
      */
     public function test_exists(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt a course.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $createdexemption = $exemptionsrepo->add($exemption);
 
@@ -434,21 +432,21 @@ final class repository_test extends \advanced_testcase {
      * @covers ::exists_by
      */
     public function test_exists_by(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt two courses, in different areas.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption2 = new exemption(
             'core_course',
             'anothertype',
-            $course2context->instanceid,
-            $course2context->id,
+            $course2ctx->instanceid,
+            $course2ctx->id,
         );
         $exemption1 = $exemptionsrepo->add($exemption);
         $exemption2 = $exemptionsrepo->add($exemption2);
@@ -483,29 +481,29 @@ final class repository_test extends \advanced_testcase {
     }
 
     /**
-     * Test the update() method, by simulating a user changing the ordering of an exemption.
+     * Test the update() method, by simulating changing the reason of an exemption.
      *
      * @covers ::update
      */
     public function test_update(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt a course.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption1 = $exemptionsrepo->add($exemption);
-        $this->assertNull($exemption1->ordering);
+        $this->assertNull($exemption1->reason);
 
-        // Verify we can update the ordering for 2 exemptions.
-        $exemption1->ordering = 1;
+        // Verify we can update the reason.
+        $exemption1->reason = 'Hello, world!';
         $exemption1 = $exemptionsrepo->update($exemption1);
         $this->assertInstanceOf(exemption::class, $exemption1);
-        $this->assertEquals('1', $exemption1->ordering);
+        $this->assertEquals('Hello, world!', $exemption1->reason);
     }
 
     /**
@@ -514,15 +512,15 @@ final class repository_test extends \advanced_testcase {
      * @covers ::delete
      */
     public function test_delete(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt a course.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption = $exemptionsrepo->add($exemption);
 
@@ -540,21 +538,21 @@ final class repository_test extends \advanced_testcase {
      * @covers ::delete_by
      */
     public function test_delete_by(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt two courses, in different areas.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption2 = new exemption(
             'core_course',
             'anothertype',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption1 = $exemptionsrepo->add($exemption);
         $exemption2 = $exemptionsrepo->add($exemption2);
@@ -598,27 +596,27 @@ final class repository_test extends \advanced_testcase {
      * @covers ::find_exemption
      */
     public function test_find_exemption_basic(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Create an exemption repository and exempt two courses, in different areas.
         $exemptionsrepo = new exemption_repository();
         $exemption = new exemption(
             'core_course',
             'course',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption2 = new exemption(
             'core_course',
             'anothertype',
-            $course1context->instanceid,
-            $course1context->id,
+            $course1ctx->instanceid,
+            $course1ctx->id,
         );
         $exemption1 = $exemptionsrepo->add($exemption);
         $exemption2 = $exemptionsrepo->add($exemption2);
 
-        $exem = $exemptionsrepo->find_exemption('core_course', 'course', $course1context->instanceid,
-            $course1context->id);
+        $exem = $exemptionsrepo->find_exemption('core_course', 'course', $course1ctx->instanceid,
+            $course1ctx->id);
         $this->assertInstanceOf(\core_exemptions\local\entity\exemption::class, $exem);
     }
 
@@ -628,11 +626,11 @@ final class repository_test extends \advanced_testcase {
      * @covers ::find_exemption
      */
     public function test_find_exemption_nonexistent_exemption(): void {
-        [$user1context, $user2context, $course1context, $course2context] = $this->setup_users_and_courses();
+        [$user1ctx, $user2ctx, $course1ctx, $course2ctx] = $this->setup_users_and_courses();
 
         // Confirm we get an exception.
         $exemptionsrepo = new exemption_repository();
         $this->expectException(\dml_exception::class);
-        $exemptionsrepo->find_exemption('core_course', 'course', 0, $course1context->id);
+        $exemptionsrepo->find_exemption('core_course', 'course', 0, $course1ctx->id);
     }
 }
