@@ -153,6 +153,6 @@ class penalty_rule_table extends table_sql {
      * @param object $row row object.
      */
     public function col_penalty($row) {
-        return get_string('percents', 'moodle', format_float($row->penalty));
+        return get_string('percents', 'moodle', format_float($row->penalty, -1));
     }
 }
