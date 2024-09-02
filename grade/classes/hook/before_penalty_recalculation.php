@@ -16,6 +16,7 @@
 
 namespace core_grades\hook;
 
+use core\context\module;
 use core\hook\stoppable_trait;
 use Psr\EventDispatcher\StoppableEventInterface;
 
@@ -34,17 +35,50 @@ use Psr\EventDispatcher\StoppableEventInterface;
 class before_penalty_recalculation implements StoppableEventInterface {
     use stoppable_trait;
 
+    /** @var \context $context The context in which the recalculation applies. */
+    public readonly \context $context;
+
+    /** @var int|null $courseid The course id, if applicable. */
+    public readonly ?int $courseid;
+
+    /** @var \cm_info|null $cm The course module object, if applicable. */
+    public readonly ?\cm_info $cm;
+
+    /** @var int $userid The user who triggered the event. */
+    public readonly int $userid;
+
+    /** @var int $timestamp The timestamp when the event was triggered. */
+    public readonly int $timestamp;
+
+
     /**
      * Constructor for the hook.
      *
      * @param \context $context The context object
      * @param int $userid The user who triggered the event
      */
-    public function __construct(
-        /** @var \context The context object */
-        public readonly \context $context,
-        /** @var int The user who triggered the event */
-        public readonly int $userid,
-    ) {
+    public function __construct(\context $context, ?int $userid = null) {
+        global $USER;
+
+        $courseid = null;
+        $cm = null;
+
+        switch ($context->contextlevel) {
+            case CONTEXT_SYSTEM:
+                break;
+            case CONTEXT_COURSE:
+                $this->courseid = $this->context->instanceid;
+                break;
+            case CONTEXT_MODULE:
+                $courseid = $context->get_course_context()->instanceid;
+                $cm = get_fast_modinfo($courseid)->get_cm($context->instanceid);
+                break;
+        }
+
+        $this->context = $context;
+        $this->courseid = $courseid;
+        $this->cm = $cm;
+        $this->userid = $userid ?? $USER->id;
+        $this->timestamp = time();
     }
 }

@@ -69,6 +69,31 @@ class helper {
     }
 
     /**
+     * Apply penalties to all users who have graded attempts.
+     *
+     * @param int $assignid The assignment id.
+     */
+    public static function apply_penalties(int $assignid): void {
+        global $DB;
+
+        // Check if penalty is enabled for this assignment.
+        if (!self::is_penalty_enabled($assignid)) {
+            return;
+        }
+
+        // Get all the users who have graded attempts.
+        $sql = "SELECT DISTINCT userid
+                  FROM {assign_grades}
+                 WHERE assignment = :assignid";
+        $users = $DB->get_records_sql($sql, ['assignid' => $assignid]);
+
+        // Apply penalty to each user.
+        foreach ($users as $user) {
+            self::apply_penalty_to_user($assignid, $user->userid);
+        }
+    }
+
+    /**
      * Apply penalty to a user.
      *
      * @param int $assignid The assignment id.
