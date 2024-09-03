@@ -46,20 +46,36 @@ class hook_callbacks {
         switch ($hook->context->contextlevel) {
             case CONTEXT_MODULE:
                 if ($hook->cm->modname === 'assign') {
-                    helper::apply_penalties($hook->cm->instance);
+                    // Update grades for the assignment.
+                    $assignrecord = $DB->get_record('assign', ['id' => $hook->cm->instance]);
+                    $assignrecord->cmidnumber = $hook->cm->idnumber;
+                    assign_update_grades($assignrecord);
                 }
                 break;
+
             case CONTEXT_COURSE:
-                $modinfo = get_fast_modinfo($hook->courseid);
-                foreach ($modinfo->get_instances_of('assign') as $cm) {
-                    helper::apply_penalties($cm->instance);
+                // Update grades for all assignments in the course.
+                $sql = 'SELECT a.*, cm.idnumber AS cmidnumber
+                          FROM {assign} a
+                          JOIN {course_modules} cm ON a.id = cm.instance
+                          JOIN {modules} m ON cm.module = m.id
+                         WHERE a.course = :courseid AND m.name = :modulename';
+                $records = $DB->get_records_sql($sql, ['courseid' => $hook->courseid, 'modulename' => 'assign']);
+                foreach ($records as $record) {
+                    assign_update_grades($record);
                 }
                 break;
+
             case CONTEXT_SYSTEM:
-                $sql = 'SELECT DISTINCT assignment FROM {assign_grades}';
-                $records = $DB->get_records_sql($sql);
+                // Update grades for every assignment.
+                $sql = 'SELECT a.*, cm.idnumber AS cmidnumber
+                          FROM {assign} a
+                          JOIN {course_modules} cm ON a.id = cm.instance
+                          JOIN {modules} m ON cm.module = m.id
+                         WHERE m.name = :modulename';
+                $records = $DB->get_records_sql($sql, ['modulename' => 'assign']);
                 foreach ($records as $record) {
-                    helper::apply_penalties($record->assignment);
+                    assign_update_grades($record);
                 }
                 break;
         }
