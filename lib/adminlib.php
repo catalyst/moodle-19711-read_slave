@@ -9334,6 +9334,52 @@ function db_should_replace($table, $column = '', $additionalskiptables = ''): bo
     return true;
 }
 
+
+/**
+ * Search for a string in the database.
+ *
+ * @param string $search the string to search for
+ * @param string $additionalskiptables additional tables to skip
+ * @param bool $summary if true, shown only the table and column names
+ * @return array|bool false if no tables, or an array of results
+ */
+function db_search(string $search, string $additionalskiptables = '', bool $summary = false) {
+    global $DB;
+
+    if (!$tables = $DB->get_tables() ) {    // No tables yet at all.
+        return false;
+    }
+
+    // If we are doing a summary, we only want to return the first match.
+    $limit = $summary ? 1 : 0;
+
+    $result = [];
+    foreach ($tables as $table) {
+        // TODO: db_should_replace can be refactored/reused here.
+        if (!db_should_replace($table, '', $additionalskiptables)) {
+            continue;
+        }
+
+        if ($columns = $DB->get_columns($table)) {
+            foreach ($columns as $column) {
+                if (!db_should_replace($table, $column->name)) {
+                    continue;
+                }
+
+                if ($match = $DB->search_all_text($table, $column, $search, $limit)) {
+                    if ($summary) {
+                        $result[$table][$column->name] = [];
+                    } else {
+                        $result[$table][$column->name] = $match;
+                    }
+                }
+            }
+        }
+    }
+
+    return $result;
+}
+
 /**
  * Moved from admin/replace.php so that we can use this in cron
  *

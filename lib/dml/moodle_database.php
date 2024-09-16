@@ -2586,6 +2586,33 @@ abstract class moodle_database {
     }
 
     /**
+     * SQL to get the current timestamp.
+     *
+     * @param string $table  The table name.
+     * @param database_column_info $column The column info.
+     * @param string $search The search string.
+     * @param int $limit number of records to return.
+     * @return array|false
+     */
+    public function search_all_text($table, database_column_info $column, $search, $limit = 0) {
+        // Enclose the column name by the proper quotes if it's a reserved word.
+        $columnname = $this->get_manager()->generator->getEncQuoted($column->name);
+
+        $searchsql = $this->sql_like($columnname, '?');
+        $searchparam = '%'.$this->sql_like_escape($search).'%';
+
+        $sql = "SELECT $columnname
+                  FROM {".$table."}
+                 WHERE $searchsql";
+
+        if ($column->meta_type === 'X' || $column->meta_type === 'C') {
+            return $this->get_records_sql($sql, array($searchparam), 0, $limit);
+        }
+
+        return false;
+    }
+
+    /**
      * Does this driver support tool_replace?
      *
      * @since Moodle 2.6.1
