@@ -241,18 +241,21 @@ class grade_report_grader extends grade_report {
                             continue;
                         }
 
-                        // If the grade item uses a custom scale
-                        if (!empty($oldvalue->grade_item->scaleid)) {
+                        // Detect if there is any mark deduction.
+                        if (!isset($data->deduction[$userid][$itemid])) {
+                            // If the grade item uses a custom scale.
+                            if (!empty($oldvalue->grade_item->scaleid)) {
 
-                            if ((int)$oldvalue->finalgrade === (int)$postedvalue) {
-                                continue;
-                            }
-                        } else {
-                            // The grade item uses a numeric scale
+                                if ((int)$oldvalue->finalgrade === (int)$postedvalue) {
+                                    continue;
+                                }
+                            } else {
+                                // The grade item uses a numeric scale.
 
-                            // Format the finalgrade from the DB so that it matches the grade from the client
-                            if ($postedvalue === format_float($oldvalue->finalgrade, $oldvalue->grade_item->get_decimals())) {
-                                continue;
+                                // Format the finalgrade from the DB so that it matches the grade from the client.
+                                if ($postedvalue === format_float($oldvalue->finalgrade, $oldvalue->grade_item->get_decimals())) {
+                                    continue;
+                                }
                             }
                         }
 
@@ -328,6 +331,13 @@ class grade_report_grader extends grade_report {
 
                     $gradeitem->update_final_grade($userid, $finalgrade, 'gradebook', false,
                         FORMAT_MOODLE, null, null, true);
+
+                    // Apply penalty.
+                    if (isset($data->deduction[$userid][$itemid])) {
+                        $deductedmark = $data->deduction[$userid][$itemid];
+                        $gradeitem->update_final_grade($userid, $finalgrade - $deductedmark, 'gradepenalty', false,
+                            FORMAT_MOODLE, null, null, true);
+                    }
                 }
             }
         }
@@ -1145,6 +1155,14 @@ class grade_report_grader extends grade_report {
                             $context->extraclasses = 'form-control';
                             if ($context->statusicons) {
                                 $context->extraclasses .= ' statusicons';
+                            }
+
+                            // If option to reapply deduction is enabled, add the option to the context.
+                            if (get_config('core', 'gradepenalty_overriddengrade')) {
+                                $context->deductedmark = format_float($grade->deductedmark, $decimalpoints);
+                                $context->reapplydeduction = $grade->deductedmark > 0;
+                                $context->deductionid = 'deduction_' . $userid . '_' . $item->id;
+                                $context->deductionname = 'deduction[' . $userid . '][' . $item->id .']';
                             }
                         } else {
                             $context->extraclasses = 'gradevalue' . $hidden . $gradepass;
