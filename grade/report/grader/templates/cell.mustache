@@ -41,7 +41,19 @@
                     {{>core_grades/grades/grader/scale}}
                 {{/scale}}
                 {{^scale}}
-                    {{>core_grades/grades/grader/input}}
+                    <div class="container">
+                        <div class="row">
+                            {{>core_grades/grades/grader/input}}
+                        </div>
+                        {{#reapplydeduction}}
+                            <div class="row deductedmark">
+                                <input type="checkbox" name="{{deductionname}}" value="{{deductedmark}}" id="{{deductionid}}" class="ms-0">
+                                <label for="{{deductionid}}" class="form-check-label ml-1" title="{{#str}}applypenaltytooltip, gradereport_grader{{/str}}">
+                                    {{#str}}applypenaltytext, gradereport_grader, {{deductedmark}}{{/str}}
+                                </label>
+                            </div>
+                        {{/reapplydeduction}}
+                    </div>
                 {{/scale}}
             {{/iseditable}}
             {{^iseditable}}
