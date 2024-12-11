@@ -2055,7 +2055,9 @@ class assign {
             // Add penalty indicator.
             $penaltyindicator = '';
             if ($deductedmark > 0) {
-                $indicator = new \core_grades\output\penalty_indicator(2, $deductedmark);
+                $usergrade = new \grade_grade();
+                $usergrade->deductedmark = $deductedmark;
+                $indicator = new \core_grades\output\penalty_indicator(2, $usergrade);
                 $renderer = $PAGE->get_renderer('core_grades');
                 $penaltyindicator = $renderer->render_penalty_indicator($indicator);
             }
@@ -7936,9 +7938,11 @@ class assign {
         }
 
         // Penalty indicator.
-        $usergrade = $gradinginfo->items[0]->grades[$userid];
-        if (isset($usergrade->grade) && $usergrade->deductedmark > 0) {
-            $indicator = new \core_grades\output\penalty_indicator(2, $usergrade->deductedmark);
+        $userassigngrade = $gradinginfo->items[0]->grades[$userid];
+        if (isset($userassigngrade->grade) && $userassigngrade->deductedmark > 0) {
+            $gradegrade = new \grade_grade();
+            $gradegrade->deductedmark = $userassigngrade->deductedmark;
+            $indicator = new \core_grades\output\penalty_indicator(2, $gradegrade);
             $renderer = $PAGE->get_renderer('core_grades');
             $penaltyindicator = $renderer->render_penalty_indicator($indicator);
             $gradestring = $penaltyindicator . $gradestring;
