@@ -786,12 +786,9 @@ function grade_set_setting($courseid, $name, $value) {
  * @param bool $localized use localised decimal separator
  * @param int $displaytype type of display. For example GRADE_DISPLAY_TYPE_REAL, GRADE_DISPLAY_TYPE_PERCENTAGE, GRADE_DISPLAY_TYPE_LETTER
  * @param int $decimals The number of decimal places when displaying float values
- * @param float $penalty The penalty value
  * @return string
  */
-function grade_format_gradevalue(?float $value, &$grade_item, $localized=true, $displaytype=null, $decimals=null, $penalty = 0.0) {
-    global $PAGE;
-
+function grade_format_gradevalue(?float $value, &$grade_item, $localized=true, $displaytype=null, $decimals=null) {
     if ($grade_item->gradetype == GRADE_TYPE_NONE or $grade_item->gradetype == GRADE_TYPE_TEXT) {
         return '';
     }
@@ -816,59 +813,59 @@ function grade_format_gradevalue(?float $value, &$grade_item, $localized=true, $
 
     switch ($displaytype) {
         case GRADE_DISPLAY_TYPE_REAL:
-            $gradetext = grade_format_gradevalue_real($value, $grade_item, $decimals, $localized);
-            break;
+            return grade_format_gradevalue_real($value, $grade_item, $decimals, $localized);
 
         case GRADE_DISPLAY_TYPE_PERCENTAGE:
-            $gradetext = grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized);
-            break;
+            return grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized);
 
         case GRADE_DISPLAY_TYPE_LETTER:
-            $gradetext = grade_format_gradevalue_letter($value, $grade_item);
-            break;
+            return grade_format_gradevalue_letter($value, $grade_item);
 
         case GRADE_DISPLAY_TYPE_REAL_PERCENTAGE:
-            $gradetext = grade_format_gradevalue_real($value, $grade_item, $decimals, $localized) . ' (' .
+            return grade_format_gradevalue_real($value, $grade_item, $decimals, $localized) . ' (' .
                     grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized) . ')';
-            break;
 
         case GRADE_DISPLAY_TYPE_REAL_LETTER:
-            $gradetext = grade_format_gradevalue_real($value, $grade_item, $decimals, $localized) . ' (' .
+            return grade_format_gradevalue_real($value, $grade_item, $decimals, $localized) . ' (' .
                     grade_format_gradevalue_letter($value, $grade_item) . ')';
-            break;
 
         case GRADE_DISPLAY_TYPE_PERCENTAGE_REAL:
-            $gradetext = grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized) . ' (' .
+            return grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized) . ' (' .
                     grade_format_gradevalue_real($value, $grade_item, $decimals, $localized) . ')';
-            break;
 
         case GRADE_DISPLAY_TYPE_LETTER_REAL:
-            $gradetext = grade_format_gradevalue_letter($value, $grade_item) . ' (' .
+            return grade_format_gradevalue_letter($value, $grade_item) . ' (' .
                     grade_format_gradevalue_real($value, $grade_item, $decimals, $localized) . ')';
-            break;
 
         case GRADE_DISPLAY_TYPE_LETTER_PERCENTAGE:
-            $gradetext = grade_format_gradevalue_letter($value, $grade_item) . ' (' .
+            return grade_format_gradevalue_letter($value, $grade_item) . ' (' .
                     grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized) . ')';
-            break;
 
         case GRADE_DISPLAY_TYPE_PERCENTAGE_LETTER:
-            $gradetext = grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized) . ' (' .
+            return grade_format_gradevalue_percentage($value, $grade_item, $decimals, $localized) . ' (' .
                     grade_format_gradevalue_letter($value, $grade_item) . ')';
-            break;
-
         default:
-            $gradetext = '';
+            return '';
     }
+}
+
+/**
+ * Show if penalty is applied to the grade
+ *
+ * @param grade_grade $grade Grade object
+ * @return string HTML code for penalty indicator
+ */
+function show_penalty_indicator(grade_grade $grade): string {
+    global $PAGE;
 
     // Show penalty indicator if penalty is greater than 0.
-    if ($penalty > 0.0) {
-        $indicator = new \core_grades\output\penalty_indicator(2, $penalty);
+    if ($grade->deductedmark > 0) {
+        $indicator = new \core_grades\output\penalty_indicator(2, $grade);
         $renderer = $PAGE->get_renderer('core_grades');
-        $gradetext .= $renderer->render_penalty_indicator($indicator);
+        return $renderer->render_penalty_indicator($indicator);
     }
 
-    return $gradetext;
+    return '';
 }
 
 /**

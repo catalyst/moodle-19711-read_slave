@@ -332,6 +332,9 @@ class grade_report_grader extends grade_report {
                     $gradeitem->update_final_grade($userid, $finalgrade, 'gradebook', false,
                         FORMAT_MOODLE, null, null, true);
 
+                    // Save overridden mark.
+                    $gradeitem->update_overridden_mark($userid, $finalgrade);
+
                     // Apply penalty.
                     if (isset($data->deduction[$userid][$itemid])) {
                         $deductedmark = $data->deduction[$userid][$itemid];
@@ -1209,7 +1212,8 @@ class grade_report_grader extends grade_report {
 
                         $context->extraclasses = 'gradevalue ' . $hidden . $gradepass;
                         $context->text = grade_format_gradevalue($gradeval, $item, true,
-                            $gradedisplaytype, null, $grade->deductedmark);
+                            $gradedisplaytype, null);
+                        $context->text .= show_penalty_indicator($grade);
                     }
                 }
 
