@@ -45,14 +45,17 @@
                         <div class="row">
                             {{>core_grades/grades/grader/input}}
                         </div>
-                        {{#reapplydeduction}}
+                        {{#canapplypenalty}}
                             <div class="row deductedmark">
-                                <input type="checkbox" name="{{deductionname}}" value="{{deductedmark}}" id="{{deductionid}}" class="ms-0">
-                                <label for="{{deductionid}}" class="form-check-label ml-1" title="{{#str}}applypenaltytooltip, gradereport_grader{{/str}}">
-                                    {{#str}}applypenaltytext, gradereport_grader, {{deductedmark}}{{/str}}
+                                <input type="checkbox" name="{{exemptionname}}"
+                                       value="{{deductedmark}}" id="{{exemptionid}}" class="ms-0"
+                                       {{#penaltyexempted}}checked{{/penaltyexempted}}>
+                                <label for="{{exemptionid}}" class="form-check-label ml-1 accesshide" title="{{{exemptiontooltip}}}">
+                                    {{{exemptionarialabel}}}
                                 </label>
+                                <span class="form-check-label ml-1 ">{{{exemptionlabel}}}</span>
                             </div>
-                        {{/reapplydeduction}}
+                        {{/canapplypenalty}}
                     </div>
                 {{/scale}}
             {{/iseditable}}

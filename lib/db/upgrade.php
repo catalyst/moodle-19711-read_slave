@@ -1338,5 +1338,21 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024120500.02);
     }
 
+    if ($oldversion < 2024121301.00) {
+
+        // Define field overriddenmark to be added to grade_grades.
+        $table = new xmldb_table('grade_grades');
+        $field = new xmldb_field('overriddenmark', XMLDB_TYPE_NUMBER, '10, 5', null,
+            XMLDB_NOTNULL, null, '0', 'deductedmark');
+
+        // Conditionally launch add field penalty.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2024121301.00);
+    }
+
     return true;
 }

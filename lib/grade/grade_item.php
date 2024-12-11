@@ -2162,6 +2162,21 @@ class grade_item extends grade_object {
     }
 
     /**
+     * Update overridden mark for given user
+     *
+     * @param int $userid The graded user
+     * @param float $overriddenmark The mark deducted from final grade
+     */
+    public function update_overridden_mark(int $userid, float $overriddenmark): void {
+        $grade = new grade_grade([
+            'itemid' => $this->id,
+            'userid' => $userid,
+        ]);
+        $grade->overriddenmark = $overriddenmark;
+        $grade->update();
+    }
+
+    /**
      * Calculates final grade values using the formula in the calculation property.
      * The parameters are taken from final grades of grade items in current course only.
      *

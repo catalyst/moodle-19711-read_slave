@@ -241,21 +241,27 @@ class grade_report_grader extends grade_report {
                             continue;
                         }
 
-                        // Detect if there is any mark deduction.
-                        if (!isset($data->deduction[$userid][$itemid])) {
-                            // If the grade item uses a custom scale.
-                            if (!empty($oldvalue->grade_item->scaleid)) {
+                        // Detect changes in exemption checkbox.
+                        if ($oldvalue->can_apply_penalty_to_overridden_mark()) {
+                            $exemptionchanged = isset($data->exemption[$userid][$itemid]) !=
+                                !$oldvalue->is_penalty_applied_to_overridden_mark();
+                        } else {
+                            $exemptionchanged = false;
+                        }
 
-                                if ((int)$oldvalue->finalgrade === (int)$postedvalue) {
-                                    continue;
-                                }
-                            } else {
-                                // The grade item uses a numeric scale.
+                        // If the grade item uses a custom scale
+                        if (!empty($oldvalue->grade_item->scaleid)) {
 
-                                // Format the finalgrade from the DB so that it matches the grade from the client.
-                                if ($postedvalue === format_float($oldvalue->finalgrade, $oldvalue->grade_item->get_decimals())) {
-                                    continue;
-                                }
+                            if ((int)$oldvalue->finalgrade === (int)$postedvalue && !$exemptionchanged) {
+                                continue;
+                            }
+                        } else {
+                            // The grade item uses a numeric scale
+
+                            // Format the finalgrade from the DB so that it matches the grade from the client
+                            if ($postedvalue === format_float($oldvalue->finalgrade, $oldvalue->grade_item->get_decimals())
+                                && !$exemptionchanged) {
+                                continue;
                             }
                         }
 
@@ -336,9 +342,8 @@ class grade_report_grader extends grade_report {
                     $gradeitem->update_overridden_mark($userid, $finalgrade);
 
                     // Apply penalty.
-                    if (isset($data->deduction[$userid][$itemid])) {
-                        $deductedmark = $data->deduction[$userid][$itemid];
-                        $gradeitem->update_final_grade($userid, $finalgrade - $deductedmark, 'gradepenalty', false,
+                    if ($oldvalue->can_apply_penalty_to_overridden_mark() && !isset($data->exemption[$userid][$itemid])) {
+                        $gradeitem->update_final_grade($userid, $finalgrade - $oldvalue->deductedmark, 'gradepenalty', false,
                             FORMAT_MOODLE, null, null, true);
                     }
                 }
@@ -1160,12 +1165,17 @@ class grade_report_grader extends grade_report {
                                 $context->extraclasses .= ' statusicons';
                             }
 
-                            // If option to reapply deduction is enabled, add the option to the context.
-                            if (get_config('core', 'gradepenalty_overriddengrade')) {
+                            // Show option for user to apply penalty or not.
+                            if ($grade->can_apply_penalty_to_overridden_mark()) {
+                                $context->canapplypenalty = true;
                                 $context->deductedmark = format_float($grade->deductedmark, $decimalpoints);
-                                $context->reapplydeduction = $grade->deductedmark > 0;
-                                $context->deductionid = 'deduction_' . $userid . '_' . $item->id;
-                                $context->deductionname = 'deduction[' . $userid . '][' . $item->id .']';
+                                $context->penaltyexempted = !$grade->is_penalty_applied_to_overridden_mark();
+                                $context->exemptionid = 'exemption' . $userid . '_' . $item->id;
+                                $context->exemptionname = 'exemption[' . $userid . '][' . $item->id .']';
+                                $context->exemptionlabel = get_string('applypenaltytext', 'gradereport_grader');
+                                $context->exemptionarialabel = $gradelabel . ' ' .
+                                    get_string('applypenaltytext', 'gradereport_grader');
+                                $context->exemptiontooltip = get_string('applypenaltytooltip', 'gradereport_grader');
                             }
                         } else {
                             $context->extraclasses = 'gradevalue' . $hidden . $gradepass;

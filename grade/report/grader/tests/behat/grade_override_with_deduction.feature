@@ -32,15 +32,19 @@ Feature: As a teacher, I want to override a grade with a deduction and check the
       | -1-                | -2-                  | -3-       | -4-       | -5-       |
       | Student 1          | student1@example.com | 60        | 80        | 140       |
     And I turn editing mode on
-    And I set the field "Student 1 Manual grade 01 grade" to "80"
-    And I click on "Deduct 10.00" "checkbox"
+    And I set the following fields to these values:
+        | Student 1 Manual grade 01 grade             | 80 |
+        | Student 1 Manual grade 01 Penalty exemption | 0  |
+        | Student 1 Manual grade 02 Penalty exemption | 1  |
     And I click on "Save changes" "button"
     And I turn editing mode off
     And the following should exist in the "user-grades" table:
       | -1-                | -2-                  | -3-       | -4-       | -5-       |
       | Student 1          | student1@example.com | 70        | 80        | 150       |
     And I turn editing mode on
-    And I set the field "Student 1 Manual grade 02 grade" to "100"
+    And I set the following fields to these values:
+      | Student 1 Manual grade 02 grade             | 100 |
+      | Student 1 Manual grade 02 Penalty exemption | 1   |
     And I click on "Save changes" "button"
     And I turn editing mode off
     And the following should exist in the "user-grades" table:

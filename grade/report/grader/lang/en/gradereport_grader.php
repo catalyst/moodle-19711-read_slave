@@ -23,8 +23,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['applypenaltytext'] = 'Deduct {$a}';
-$string['applypenaltytooltip'] = 'Apply a deduction to the grade. This value is retrieved from the current overridden grade.';
+$string['applypenaltytext'] = 'Penalty exemption';
+$string['applypenaltytooltip'] = 'If the box is checked, penalty will not be applied to the overridden grade.';
 $string['aria:dropdowncolumns'] = 'Collapsed columns found';
 $string['clearsearch'] = 'Clear searched users';
 $string['collapsedcolumns'] = 'Collapsed columns <span class="badge rounded-pill bg-primary text-white ms-1" data-collapse="count">{$a}</span>';
