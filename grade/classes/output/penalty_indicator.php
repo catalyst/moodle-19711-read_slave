@@ -31,34 +31,35 @@ class penalty_indicator implements templatable, renderable {
     /** @var int $decimals the decimal places */
     protected int $decimals;
 
-    /** @var float $penalty the deducted grade */
-    protected float $penalty;
+    /** @var \grade_grade $grade user grade */
+    protected \grade_grade $grade;
 
-    /** @var float|null $finalgrade the final grade */
-    protected ?float $finalgrade;
+    /** @var bool $showfinalgrade whether to show the final grade */
+    protected bool $showfinalgrade;
 
-    /** @var float|null $maxgrade the maximum grade */
-    protected ?float $maxgrade;
+    /** @var bool $showgrademax whether to show the max grade */
+    protected bool $showgrademax;
 
-    /** @var array|null $icon icon data */
-    protected ?array $icon;
+    /** @var array|null $penaltyicon icon to show if penalty is applied */
+    protected ?array $penaltyicon;
 
     /**
      * The class constructor.
      *
      * @param int $decimals the decimal places
-     * @param float $penalty the deducted grade
-     * @param float|null $finalgrade the final grade
-     * @param float|null $maxgrade the maximum grade
-     * @param array|null $icon icon data
+     * @param \grade_grade $grade user grade
+     * @param bool $showfinalgrade whether to show the final grade (or show icon only)
+     * @param bool $showgrademax whether to show the max grade
+     * @param array|null $penaltyicon icon to show if penalty is applied
      */
-    public function __construct(int $decimals, float $penalty, ?float $finalgrade = null,
-                                ?float $maxgrade = null, ?array $icon = null) {
-        $this->icon = $icon;
+    public function __construct(int $decimals, \grade_grade $grade,
+                                bool $showfinalgrade = false, bool $showgrademax = false,
+                                ?array $penaltyicon = null) {
         $this->decimals = $decimals;
-        $this->penalty = $penalty;
-        $this->finalgrade = $finalgrade;
-        $this->maxgrade = $maxgrade;
+        $this->grade = $grade;
+        $this->showfinalgrade = $showfinalgrade;
+        $this->showgrademax = $showgrademax;
+        $this->penaltyicon = $penaltyicon;
     }
 
     /**
@@ -77,12 +78,18 @@ class penalty_indicator implements templatable, renderable {
      * @return array
      */
     public function export_for_template(renderer_base $output) {
+        $penalty = format_float($this->grade->deductedmark, $this->decimals);
+        $finalgrade = $this->showfinalgrade ? format_float($this->grade->finalgrade , $this->decimals) : null;
+        $grademax = $this->showgrademax ? format_float($this->grade->get_grade_max(), $this->decimals) : null;
+        $icon = $this->penaltyicon ?: ['name' => 'i/risk_xss', 'component' => 'core'];
+        $info = get_string('gradepenalty_indicator_info', 'core_grades',  format_float($penalty, $this->decimals));
+
         $context = [
-            'penalty' => format_float($this->penalty, $this->decimals),
-            'finalgrade' => $this->finalgrade ? format_float($this->finalgrade, $this->decimals) : null,
-            'maxgrade' => $this->maxgrade ? format_float($this->maxgrade, $this->decimals) : null,
-            'icon' => $this->icon ?: ['name' => 'i/risk_xss', 'component' => 'core'] ,
-            'info' => get_string('gradepenalty_indicator_info', 'core_grades', format_float($this->penalty, $this->decimals)),
+            'penalty' => $penalty,
+            'finalgrade' => $finalgrade,
+            'grademax' => $grademax,
+            'icon' => $icon,
+            'info' => $info,
         ];
 
         return $context;

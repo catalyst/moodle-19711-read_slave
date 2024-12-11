@@ -33,11 +33,11 @@
 {{/icon}}
 {{#finalgrade}}
     <span class="penalty-indicator-value">
-        {{#maxgrade}}
-            {{finalgrade}} / {{maxgrade}}
-        {{/maxgrade}}
-        {{^maxgrade}}
+        {{#grademax}}
+            {{finalgrade}} / {{grademax}}
+        {{/grademax}}
+        {{^grademax}}
             {{finalgrade}}
-        {{/maxgrade}}
+        {{/grademax}}
     </span>
 {{/finalgrade}}
