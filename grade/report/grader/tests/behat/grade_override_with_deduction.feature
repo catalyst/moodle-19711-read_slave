@@ -26,7 +26,7 @@ Feature: As a teacher, I want to override a grade with a deduction and check the
 
   @javascript
   Scenario: Override a grade with a deduction and check the gradebook
-    And I am on "Course 1" course homepage
+    Given I am on "Course 1" course homepage
     And I navigate to "View > Grader report" in the course gradebook
     And the following should exist in the "user-grades" table:
       | -1-                | -2-                  | -3-       | -4-       | -5-       |
@@ -37,16 +37,16 @@ Feature: As a teacher, I want to override a grade with a deduction and check the
         | Student 1 Manual grade 01 Penalty exemption | 0  |
         | Student 1 Manual grade 02 Penalty exemption | 1  |
     And I click on "Save changes" "button"
-    And I turn editing mode off
-    And the following should exist in the "user-grades" table:
-      | -1-                | -2-                  | -3-       | -4-       | -5-       |
-      | Student 1          | student1@example.com | 70        | 80        | 150       |
-    And I turn editing mode on
-    And I set the following fields to these values:
-      | Student 1 Manual grade 02 grade             | 100 |
-      | Student 1 Manual grade 02 Penalty exemption | 1   |
-    And I click on "Save changes" "button"
-    And I turn editing mode off
-    And the following should exist in the "user-grades" table:
+    When I turn editing mode off
+    Then the following should exist in the "user-grades" table:
       | -1-                | -2-                  | -3-       | -4-       | -5-       |
       | Student 1          | student1@example.com | 70        | 100       | 170       |
+    When I turn editing mode on
+    And I set the following fields to these values:
+      | Student 1 Manual grade 02 grade             | 100 |
+      | Student 1 Manual grade 02 Penalty exemption | 0   |
+    And I click on "Save changes" "button"
+    And I turn editing mode off
+    Then the following should exist in the "user-grades" table:
+      | -1-                | -2-                  | -3-       | -4-       | -5-       |
+      | Student 1          | student1@example.com | 70        | 80        | 150       |

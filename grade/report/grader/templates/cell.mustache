@@ -41,22 +41,12 @@
                     {{>core_grades/grades/grader/scale}}
                 {{/scale}}
                 {{^scale}}
-                    <div class="container">
-                        <div class="row">
-                            {{>core_grades/grades/grader/input}}
-                        </div>
-                        {{#canapplypenalty}}
-                            <div class="row deductedmark">
-                                <input type="checkbox" name="{{exemptionname}}"
-                                       value="{{deductedmark}}" id="{{exemptionid}}" class="ms-0"
-                                       {{#penaltyexempted}}checked{{/penaltyexempted}}>
-                                <label for="{{exemptionid}}" class="form-check-label ml-1 accesshide" title="{{{exemptiontooltip}}}">
-                                    {{{exemptionarialabel}}}
-                                </label>
-                                <span class="form-check-label ml-1 ">{{{exemptionlabel}}}</span>
-                            </div>
-                        {{/canapplypenalty}}
-                    </div>
+                    {{#canapplypenalty}}
+                        {{>core_grades/grades/grader/overriden_with_penalty}}
+                    {{/canapplypenalty}}
+                    {{^canapplypenalty}}
+                        {{>core_grades/grades/grader/input}}
+                    {{/canapplypenalty}}
                 {{/scale}}
             {{/iseditable}}
             {{^iseditable}}
