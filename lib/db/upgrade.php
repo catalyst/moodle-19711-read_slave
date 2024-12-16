@@ -1322,7 +1322,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024120500.02);
     }
 
-    if ($oldversion < 2024120500.02) {
+    if ($oldversion < 2024120500.03) {
 
         // Define field penalty to be added to grade_grades.
         $table = new xmldb_table('grade_grades');
@@ -1335,7 +1335,7 @@ function xmldb_main_upgrade($oldversion) {
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2024120500.02);
+        upgrade_main_savepoint(true, 2024120500.03);
     }
 
     if ($oldversion < 2024121301.00) {
